@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Métricas | BIANTI</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;500;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../assets/css/admin.css" />
+
+  <style>
+    .gridKpi{
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0,1fr));
+      gap:12px;
+      margin-top:12px;
+    }
+    @media (max-width: 1100px){ .gridKpi{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
+    @media (max-width: 620px){ .gridKpi{ grid-template-columns:1fr; } }
+
+    .kpi{
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.04);
+      border-radius:18px;
+      padding:14px;
+    }
+    .kpi .label{ opacity:.75; font-size:12px; }
+    .kpi .value{ font-size:22px; font-weight:800; margin-top:6px; }
+    .kpi .sub{ opacity:.75; font-size:12px; margin-top:6px; }
+
+    .gridCharts{
+      display:grid;
+      grid-template-columns: 2fr 1fr;
+      gap:12px;
+      margin-top:12px;
+    }
+    @media (max-width: 1100px){ .gridCharts{ grid-template-columns:1fr; } }
+
+    .card{
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.04);
+      border-radius:18px;
+      padding:14px;
+    }
+    .card h3{ margin:0 0 10px 0; font-size:14px; opacity:.9; }
+    .row{
+      display:flex; justify-content:space-between; gap:10px;
+      padding:10px 0; border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .row:last-child{ border-bottom:none; }
+    .row .name{ font-weight:700; }
+    .row .muted{ opacity:.75; font-size:12px; }
+
+    .toolbar{
+      display:flex; gap:10px; flex-wrap:wrap;
+      align-items:center; justify-content:space-between;
+      margin-top:10px;
+    }
+    .pill{
+      display:inline-flex; gap:10px; align-items:center;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.04);
+      padding:10px 12px;
+      border-radius:999px;
+    }
+    .pill select, .pill input{
+      background:transparent; border:none; outline:none;
+      color:inherit;
+    }
+    canvas{ width:100% !important; height:320px !important; }
+    @media (max-width: 620px){ canvas{ height:260px !important; } }
+
+    .noteBox{
+      margin-top:12px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.03);
+      border-radius:18px;
+      padding:12px;
+      opacity:.9;
+      font-size:12px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="layout">
+    <div id="sidebar-host" class="sidebar"></div>
+
+    <main class="main">
+      <div class="head">
+        <div>
+          <h1>Métricas</h1>
+          <div class="muted">Ventas reales (tabla <strong>ventas</strong>) + resumen de negocio.</div>
+        </div>
+        <div class="actions">
+          <button class="btn" id="btnRefresh">🔄 Actualizar</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="toolbar">
+          <div class="pill">
+            <span style="opacity:.75;font-size:12px">Periodo</span>
+            <select id="periodo">
+              <option value="30">Últimos 30 días</option>
+              <option value="90">Últimos 90 días</option>
+              <option value="365">Últimos 12 meses</option>
+            </select>
+          </div>
+
+          <div class="pill">
+            <span style="opacity:.75;font-size:12px">Incluir</span>
+            <label style="display:inline-flex;gap:8px;align-items:center">
+              <input id="inclEventos" type="checkbox" />
+              <span>Eventos</span>
+            </label>
+          </div>
+
+          <div class="pill" id="lastUpdate" style="opacity:.75;font-size:12px">—</div>
+        </div>
+
+        <div class="gridKpi">
+          <div class="kpi">
+            <div class="label">Total vendido (Periodo)</div>
+            <div class="value" id="kTotal">—</div>
+            <div class="sub" id="kTotalSub">—</div>
+          </div>
+
+          <div class="kpi">
+            <div class="label">Unidades vendidas</div>
+            <div class="value" id="kUnidades">—</div>
+            <div class="sub" id="kUnidadesSub">—</div>
+          </div>
+
+          <div class="kpi">
+            <div class="label">Ticket promedio</div>
+            <div class="value" id="kTicket">—</div>
+            <div class="sub" id="kTicketSub">—</div>
+          </div>
+
+          <div class="kpi">
+            <div class="label">Ventas registradas</div>
+            <div class="value" id="kCantVentas">—</div>
+            <div class="sub" id="kCantVentasSub">—</div>
+          </div>
+        </div>
+
+        <div class="gridCharts">
+          <div class="card">
+            <h3>Ventas por día</h3>
+            <canvas id="chartVentasDia"></canvas>
+          </div>
+
+          <div class="card">
+            <h3>Top productos (por facturación)</h3>
+            <div id="topProductos"></div>
+          </div>
+        </div>
+
+        <div class="gridCharts">
+          <div class="card">
+            <h3>Unidades por día</h3>
+            <canvas id="chartUnidadesDia"></canvas>
+          </div>
+
+          <div class="card">
+            <h3>Top productos (por unidades)</h3>
+            <div id="topUnidades"></div>
+          </div>
+        </div>
+
+        <div class="card" id="eventosCard" style="display:none;margin-top:12px">
+          <h3>Eventos (clicks / vistas / acciones)</h3>
+          <canvas id="chartEventos"></canvas>
+          <div class="noteBox">
+            *Esto lee la tabla <strong>eventos</strong> y agrupa por <code>type</code>. Si no estás registrando eventos todavía, va a quedar vacío (normal).
+          </div>
+        </div>
+
+        <div class="noteBox">
+          Próximo upgrade (cuando quieras): margen de ganancia real.
+          Para eso sumamos un campo <strong>costo</strong> (ideal en <strong>ventas</strong>, porque el costo puede variar) y te saco gráfico de margen $ y %.
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/supabase.js"></script>
+
+  <!-- Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3"></script>
+
+  <script type="module">
+    import { requireAdmin, logout } from "../assets/js/admin/admin-core.js";
+    requireAdmin();
+
+    const host = document.getElementById("sidebar-host");
+    if (host) {
+      const res = await fetch("./_sidebar.html");
+      host.innerHTML = await res.text();
+      document.getElementById("btnLogout")?.addEventListener("click", logout);
+    }
+    window.logout = logout;
+  </script>
+
+  <script type="module" src="../assets/js/admin/metricas.js"></script>
+</body>
+</html>

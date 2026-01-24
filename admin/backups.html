@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Backups | BIANTI</title>
+  <link rel="stylesheet" href="../assets/css/admin.css"/>
+</head>
+<body>
+  <div class="adminLayout">
+    <!-- Sidebar SIEMPRE -->
+    <div id="sidebar-host"></div>
+
+    <main class="main">
+      <div class="pageHead">
+        <div>
+          <h1 class="h1">Backups / Descargas</h1>
+          <p class="p muted">Descargá CSV por período y, si querés, limpiá la base (con confirmación).</p>
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <section class="card">
+        <div class="row" style="gap:12px; flex-wrap:wrap; align-items:flex-end;">
+          <div>
+            <label class="lbl">Período</label>
+            <select id="range" class="input">
+              <option value="7">Últimos 7 días</option>
+              <option value="30" selected>Últimos 30 días</option>
+              <option value="90">Últimos 90 días</option>
+              <option value="180">Últimos 180 días</option>
+              <option value="365">Últimos 365 días</option>
+              <option value="custom">Personalizado</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="lbl">Desde</label>
+            <input id="desde" type="date" class="input"/>
+          </div>
+
+          <div>
+            <label class="lbl">Hasta</label>
+            <input id="hasta" type="date" class="input"/>
+          </div>
+
+          <div style="min-width:260px; flex:1;">
+            <label class="lbl">Filtro (opcional)</label>
+            <input id="q" class="input" placeholder="Buscar (ej: remera, canal, nota...)"/>
+          </div>
+
+          <div class="row" style="gap:10px;">
+            <button id="btnReload" class="btn" type="button">Actualizar</button>
+          </div>
+        </div>
+
+        <div class="row muted" style="margin-top:10px; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+          <div>Tip: el filtro aplica al CSV (si filtrás “remera”, exporta eso).</div>
+          <div id="status" class="muted">—</div>
+        </div>
+      </section>
+
+      <!-- CONTABILIDAD -->
+      <section class="card">
+        <div class="row" style="justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:center;">
+          <div>
+            <h2 class="h2">Contabilidad (Ventas)</h2>
+            <p class="p muted">Exporta <b>ventas</b> y <b>ventas_manuales</b> por período.</p>
+          </div>
+          <div class="row" style="gap:10px; flex-wrap:wrap;">
+            <button id="btnCsvContabilidad" class="btn" type="button">Descargar CSV (todo)</button>
+            <button id="btnCsvVentas" class="btn" type="button">CSV ventas</button>
+            <button id="btnCsvManuales" class="btn" type="button">CSV manuales</button>
+          </div>
+        </div>
+
+        <div class="row" style="gap:12px; flex-wrap:wrap; margin-top:10px;">
+          <div class="kpiBox">
+            <div class="kpiLabel">Ventas (rows)</div>
+            <div id="kVentas" class="kpiValue">—</div>
+          </div>
+          <div class="kpiBox">
+            <div class="kpiLabel">Manuales (rows)</div>
+            <div id="kManuales" class="kpiValue">—</div>
+          </div>
+        </div>
+
+        <hr class="sep"/>
+
+        <div class="row" style="justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:center;">
+          <div>
+            <h3 class="h3" style="margin:0;">Limpieza (peligroso)</h3>
+            <p class="p muted" style="margin:6px 0 0;">Esto borra registros del período en Supabase. Primero descargá CSV.</p>
+          </div>
+          <div class="row" style="gap:10px; flex-wrap:wrap;">
+            <button id="btnDelVentas" class="btn btnDanger" type="button">Borrar ventas</button>
+            <button id="btnDelManuales" class="btn btnDanger" type="button">Borrar manuales</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- TRACKING -->
+      <section class="card">
+        <div class="row" style="justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:center;">
+          <div>
+            <h2 class="h2">Tracking (Eventos)</h2>
+            <p class="p muted">Exporta y limpia la tabla <b>eventos</b> por período.</p>
+          </div>
+          <div class="row" style="gap:10px; flex-wrap:wrap;">
+            <button id="btnCsvEventos" class="btn" type="button">Descargar CSV eventos</button>
+          </div>
+        </div>
+
+        <div class="row" style="gap:12px; flex-wrap:wrap; margin-top:10px;">
+          <div class="kpiBox">
+            <div class="kpiLabel">Eventos (rows)</div>
+            <div id="kEventos" class="kpiValue">—</div>
+          </div>
+        </div>
+
+        <hr class="sep"/>
+
+        <div class="row" style="justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:center;">
+          <div>
+            <h3 class="h3" style="margin:0;">Limpieza (peligroso)</h3>
+            <p class="p muted" style="margin:6px 0 0;">Borra eventos del período. Ideal para que no explote la DB.</p>
+          </div>
+          <div class="row" style="gap:10px; flex-wrap:wrap;">
+            <button id="btnDelEventos" class="btn btnDanger" type="button">Borrar eventos</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- deps -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/supabase.js"></script>
+
+  <!-- Sidebar loader -->
+  <script type="module">
+    import { requireAdmin, logout } from "../assets/js/admin/admin-core.js";
+    requireAdmin();
+
+    const host = document.getElementById("sidebar-host");
+    host.innerHTML = await fetch("./_sidebar.html").then(r => r.text());
+    document.getElementById("btnLogout")?.addEventListener("click", logout);
+  </script>
+
+  <!-- Page logic -->
+  <script type="module" src="../assets/js/admin/backups.js"></script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Admin | BIANTI-INDUMENTARIA</title>
+  <link rel="stylesheet" href="../assets/css/admin.css"/>
+</head>
+<body>
+
+  <div class="adminLayout">
+    <div id="sidebarHost"></div>
+
+    <main class="main">
+      <div class="headerRow">
+        <div>
+          <h1 class="h1">Panel de control</h1>
+          <p class="p">Cargá productos, revisá métricas y compartí el catálogo.</p>
+        </div>
+      </div>
+
+      <div class="actions">
+        <a class="btn btnPrimary" id="btnVerCatalogo" target="_blank" rel="noopener">👁️ Ver catálogo</a>
+        <button class="btn" id="btnCopiarLink">🔗 Copiar link</button>
+        <a class="btn" id="btnEnviarWa" target="_blank" rel="noopener">📲 Compartir por WhatsApp</a>
+      </div>
+
+      <div class="cards">
+        <div class="card"><div class="n" id="kProd">—</div><div class="l">Productos</div></div>
+        <div class="card"><div class="n" id="kCat">—</div><div class="l">Categorías</div></div>
+        <div class="card"><div class="n" id="kVar">—</div><div class="l">Variantes</div></div>
+        <div class="card"><div class="n" id="kHoy">—</div><div class="l">Eventos hoy</div></div>
+      </div>
+
+      <div class="note">
+        <strong>Guía rápida:</strong>
+        <br>1) Entrá en <b>Nuevo producto</b> para cargar algo.
+        <br>2) En <b>Productos</b podés editar y organizar fotos/talles.
+        <br>3) En <b>Métricas</b ves qué miraron más.
+        <br>4) Con <b>Copiar link</b lo mandás a tus clientes.
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/supabase.js"></script>
+
+  <script type="module">
+    import { requireAdmin, logout, catalogLink, copyText } from "../assets/js/admin/admin-core.js";
+
+    requireAdmin();
+
+    // Sidebar
+    const html = await fetch("./_sidebar.html").then(r => r.text());
+    document.getElementById("sidebarHost").innerHTML = html;
+    document.getElementById("btnLogout").addEventListener("click", logout);
+
+    const link = catalogLink();
+    const WA_NUMBER = "5492645694047";
+    const waMsg = "Mirá el catálogo BIANTI-INDUMENTARIA: " + link;
+
+    btnVerCatalogo.href = link;
+    btnEnviarWa.href = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(waMsg)}`;
+
+    btnCopiarLink.addEventListener("click", async ()=>{
+      await copyText(link);
+      btnCopiarLink.textContent = "Copiado ✅";
+      setTimeout(()=> btnCopiarLink.textContent = "🔗 Copiar link", 1400);
+    });
+
+    // KPIs
+    const sb = window.supabaseClient;
+
+    const [p,c,v,e] = await Promise.all([
+      sb.from("productos").select("id", { count:"exact", head:true }),
+      sb.from("categorias").select("id", { count:"exact", head:true }),
+      sb.from("variantes").select("id", { count:"exact", head:true }),
+      sb.from("eventos").select("id", { count:"exact", head:true }).gte("created_at", new Date().toISOString().slice(0,10))
+    ]);
+
+    kProd.textContent = p.count ?? "0";
+    kCat.textContent = c.count ?? "0";
+    kVar.textContent = v.count ?? "0";
+    kHoy.textContent = e.count ?? "0";
+  </script>
+</body>
+</html>

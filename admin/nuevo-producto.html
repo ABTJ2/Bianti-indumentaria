@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Nuevo producto | BIANTI</title>
+  <link rel="stylesheet" href="../assets/css/admin.css" />
+  <style>
+    .chips{display:flex;flex-wrap:wrap;gap:8px}
+    .chipBtn{cursor:pointer;user-select:none}
+    .chipBtn input{display:none}
+    .chipBtn span{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04)}
+    .chipBtn input:checked + span{border-color:rgba(140,80,255,.55);background:rgba(140,80,255,.14)}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width:860px){.grid2{grid-template-columns:1fr}}
+    .sep{height:1px;border:0;background:rgba(255,255,255,.08);margin:14px 0}
+    .drop{border:1px dashed rgba(255,255,255,.18);border-radius:14px;padding:12px;background:rgba(255,255,255,.03)}
+    .thumbs{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+    .thumb{display:flex;gap:10px;align-items:center;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.25);border-radius:14px;padding:10px;min-width:260px}
+    .thumb img{width:44px;height:44px;border-radius:12px;object-fit:cover;background:rgba(255,255,255,.06)}
+    .thumb .name{font-weight:700}
+    .thumb .sub{opacity:.75;font-size:12px}
+    .right{margin-left:auto}
+    .msg{margin-top:12px}
+  </style>
+</head>
+
+<body>
+  <div class="adminLayout">
+    <div id="sidebar-host"></div>
+
+    <main class="main">
+      <div class="head">
+        <div>
+          <h1 class="h1">Nuevo producto</h1>
+          <p class="p muted">Cargá una vez, guardá, y el formulario se limpia para cargar el siguiente.</p>
+        </div>
+        <div class="actions">
+          <a class="btn" href="./productos.html">Volver a Productos</a>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="grid2">
+          <div>
+            <label class="label">Nombre del producto (título)</label>
+            <input class="input" id="titulo" placeholder="Ej: Remera Oversize" />
+          </div>
+
+          <div class="grid2" style="gap:12px">
+            <div>
+              <label class="label">Precio de venta (público)</label>
+              <input class="input" id="precio_venta" type="number" min="0" step="1" placeholder="Ej: 21000" />
+            </div>
+            <div>
+              <label class="label">Precio de costo (interno)</label>
+              <input class="input" id="precio_costo" type="number" min="0" step="1" placeholder="Ej: 14000" />
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:10px;">
+          <label class="label">Descripción</label>
+          <textarea class="input" id="descripcion" rows="4" placeholder="Detalles, material, medidas, etc."></textarea>
+        </div>
+
+        <div class="grid2" style="margin-top:10px;">
+          <label class="row" style="gap:10px;align-items:center;">
+            <input type="checkbox" id="visible" checked />
+            <span><b>Visible</b> (aparece en el catálogo)</span>
+          </label>
+
+          <label class="row" style="gap:10px;align-items:center;">
+            <input type="checkbox" id="disponible" checked />
+            <span><b>Disponible</b> (hay stock / se puede vender)</span>
+          </label>
+        </div>
+
+        <hr class="sep" />
+
+        <!-- CATEGORÍAS -->
+        <div class="row" style="justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+          <div>
+            <div style="font-weight:800">Categorías (podés marcar varias)</div>
+            <div class="muted tiny">Esto usa <b>producto_categorias</b> para que el producto aparezca en varios lugares del catálogo.</div>
+          </div>
+          <button class="btn" id="btnNuevaCategoria" type="button">Nueva categoría</button>
+        </div>
+
+        <div style="margin-top:10px;">
+          <label class="label">Buscar categoría</label>
+          <input class="input" id="catSearch" placeholder="Escribí para filtrar (ej: remeras, hombre, electro...)" />
+        </div>
+
+        <div class="chips" id="catsWrap" style="margin-top:10px;"></div>
+
+        <hr class="sep" />
+
+        <!-- TALLES (DINÁMICO) -->
+        <div id="tallesSection">
+          <div>
+            <div style="font-weight:800">Talles</div>
+            <div class="muted tiny">Solo aparece si la categoría marcada tiene <b>usa_talles</b> activado.</div>
+
+            <div class="chips" id="tallesQuick" style="margin-top:10px;"></div>
+
+            <div class="row" style="gap:10px;margin-top:10px;flex-wrap:wrap;">
+              <input class="input" id="talleManual" placeholder="Agregar talle manual (ej: 38 / 40 / Único)" style="flex:1;min-width:240px" />
+              <button type="button" class="btn" id="btnAddTalle">Agregar</button>
+              <button type="button" class="btn danger" id="btnClearTalles">Limpiar</button>
+            </div>
+          </div>
+
+          <hr class="sep" />
+        </div>
+
+        <!-- FOTOS (SUBIDA REAL) -->
+        <div>
+          <div style="font-weight:800">Fotos (subida real)</div>
+          <div class="muted tiny">Se suben al bucket <b>productos</b> en Supabase Storage. Portada + extras.</div>
+
+          <div class="drop" style="margin-top:10px;">
+            <div class="row" style="gap:10px;align-items:center;flex-wrap:wrap;">
+              <div style="min-width:240px">
+                <div style="font-weight:700">Portada (archivo)</div>
+                <div class="muted tiny">JPG/PNG/WebP – ideal 1200px o más.</div>
+              </div>
+              <input type="file" id="portadaFile" accept="image/*" />
+              <button class="btn danger right" type="button" id="btnClearPortada">Quitar</button>
+            </div>
+          </div>
+
+          <div class="drop" style="margin-top:10px;">
+            <div class="row" style="gap:10px;align-items:center;flex-wrap:wrap;">
+              <div style="min-width:240px">
+                <div style="font-weight:700">Fotos extra (varias)</div>
+                <div class="muted tiny">Podés seleccionar varias de una.</div>
+              </div>
+              <input type="file" id="extrasFiles" accept="image/*" multiple />
+              <button class="btn danger right" type="button" id="btnClearExtras">Limpiar</button>
+            </div>
+
+            <div class="thumbs" id="thumbs"></div>
+          </div>
+
+          <div class="muted tiny" style="margin-top:10px;">
+            * Obligatorio: <b>Nombre</b> + <b>Precio venta</b> + <b>Portada</b>.
+          </div>
+        </div>
+
+        <div class="row msg" style="justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+          <div class="muted tiny" id="status"></div>
+          <button class="btn primary" id="btnGuardar" type="button">Guardar producto</button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/supabase.js"></script>
+
+  <script type="module">
+    import { requireAdmin, logout } from "../assets/js/admin/admin-core.js";
+    requireAdmin();
+
+    const host = document.getElementById("sidebar-host");
+    const html = await fetch("./_sidebar.html").then(r => r.text());
+    host.innerHTML = html;
+
+    const btnLogout = document.getElementById("btnLogout");
+    if (btnLogout) btnLogout.addEventListener("click", logout);
+  </script>
+
+  <script type="module" src="../assets/js/admin/nuevo-producto.js"></script>
+</body>
+</html>

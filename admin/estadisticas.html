@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Estadísticas | Bianti-Indumentaria</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/admin.css" />
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <main class="main">
+      <div class="head">
+  <div>
+    <h1>Estadísticas</h1>
+    <div class="muted">Vistas/clics/scroll/WhatsApp (tabla eventos).</div>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="formgrid">
+    <div class="input">
+      <label>Rango</label>
+      <select id="range">
+        <option value="7">Últimos 7 días</option>
+        <option value="30" selected>Últimos 30 días</option>
+        <option value="90">Últimos 90 días</option>
+      </select>
+    </div>
+    <div class="input">
+      <label>&nbsp;</label>
+      <button class="btn primary" id="btnReload">Recargar</button>
+    </div>
+  </div>
+</div>
+
+<div class="cardrow">
+  <div class="card"><div class="k">Vistas</div><div class="v" id="kpi_view">—</div></div>
+  <div class="card"><div class="k">Clicks</div><div class="v" id="kpi_click">—</div></div>
+  <div class="card"><div class="k">Scroll</div><div class="v" id="kpi_scroll">—</div></div>
+  <div class="card"><div class="k">WhatsApp</div><div class="v" id="kpi_wa">—</div></div>
+</div>
+
+<div class="panel">
+  <strong>Top productos por vistas</strong>
+  <table class="table" id="tablaTop"></table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<div class="panel" style="margin-top:14px">
+  <strong>Eventos por día</strong>
+  <canvas id="chart" height="120"></canvas>
+</div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/supabase.js"></script>
+  <script type="module">
+    import { requireAdmin, logout, injectSidebar } from "../assets/js/admin/admin-core.js";
+    requireAdmin();
+    await injectSidebar();
+    window.logout = logout;
+  </script>
+  <script type="module" src="../assets/js/admin/estadisticas.js"></script>
+</body>
+</html>
