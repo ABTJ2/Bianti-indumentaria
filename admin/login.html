@@ -2,28 +2,46 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Admin | Bianti-Indumentaria</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Admin | Bianti Indumentaria</title>
+
+  <!-- Fuente -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;500;700;800&display=swap" rel="stylesheet">
+
+  <!-- CSS ADMIN -->
   <link rel="stylesheet" href="../assets/css/admin.css" />
 </head>
+
 <body class="auth">
-  <form class="login-box" id="loginForm">
-    <img src="../assets/img/logo.png" class="logo" alt="Bianti-Indumentaria">
-    <h2>Bianti-Indumentaria</h2>
-    <p>Panel administrativo</p>
 
-    <input id="user" placeholder="Usuario" autocomplete="username" required>
-    <input id="pass" type="password" placeholder="Contraseña" autocomplete="current-password" required>
+  <div class="auth-shell">
+    <form class="login-box" id="loginForm">
 
-    <button type="submit">Ingresar</button>
-    <div id="msg"></div>
-  </form>
+      <div class="login-brand">
+        <img src="../assets/img/logo.png" alt="Bianti Indumentaria">
+        <h1>Bianti Indumentaria</h1>
+        <p>Panel administrativo</p>
+      </div>
 
+      <div class="login-fields">
+        <input id="user" placeholder="Usuario" autocomplete="username" required>
+        <input id="pass" type="password" placeholder="Contraseña" autocomplete="current-password" required>
+      </div>
+
+      <button type="submit">Ingresar</button>
+
+      <div id="msg"></div>
+
+    </form>
+  </div>
+
+  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../assets/js/supabase.js"></script>
   <script type="module" src="../assets/js/admin/auth.js"></script>
+
 </body>
 </html>

@@ -635,3 +635,93 @@ tbody tr:hover{
 
 /* Evita “zoom raro” o escalas gigantes */
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+/* ============================= */
+/* LOGIN / AUTH FIX BIANTI */
+/* ============================= */
+
+.auth {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.auth-shell {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.login-box {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(10,10,25,.75);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 18px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 20px 50px rgba(0,0,0,.4);
+  backdrop-filter: blur(14px);
+}
+
+.login-brand {
+  text-align: center;
+}
+
+.login-brand img {
+  width: 90px;
+  max-width: 90px;
+  height: auto;
+  margin-bottom: 10px;
+  border-radius: 16px;
+}
+
+.login-brand h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.login-brand p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  opacity: .75;
+}
+
+.login-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.login-box input {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(0,0,0,.35);
+  color: white;
+  font-size: 14px;
+}
+
+.login-box button {
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg,#7c3aed,#9333ea);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.login-box button:hover {
+  opacity: .9;
+}
+
+#msg {
+  text-align: center;
+  font-size: 13px;
+  min-height: 18px;
+}
