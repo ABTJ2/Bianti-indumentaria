@@ -558,3 +558,80 @@ tbody tr:hover{
 @media (max-width: 560px){
   .cards{ grid-template-columns: 1fr; }
 }
+/* ===== LOGIN / AUTH ===== */
+.auth-shell{
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.auth-card{
+  width: 100%;
+  max-width: 420px;
+  background: rgba(15, 23, 42, .72);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 10px 35px rgba(0,0,0,.35);
+}
+
+.auth-brand{
+  display:flex;
+  gap: 12px;
+  align-items:center;
+  margin-bottom: 14px;
+}
+
+.auth-brand img{
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.auth-brand h1{
+  font-size: 20px;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.auth-brand p{
+  margin: 4px 0 0;
+  opacity: .75;
+  font-size: 13px;
+}
+
+.auth-form{
+  display: grid;
+  gap: 12px;
+}
+
+.field span{
+  display:block;
+  font-size: 12px;
+  opacity: .8;
+  margin-bottom: 6px;
+}
+
+.field input{
+  width: 100%;
+  padding: 12px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(2,6,23,.55);
+  color: #fff;
+  outline: none;
+  font-size: 14px;
+}
+
+.btn-full{ width:100%; }
+
+.auth-foot{
+  margin: 6px 0 0;
+  font-size: 12px;
+  opacity: .7;
+}
+
+/* Evita “zoom raro” o escalas gigantes */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
