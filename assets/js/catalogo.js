@@ -11,7 +11,7 @@
   const WA_NUMBER =
     window.WHATSAPP_NUMBER ||
     window.WA_NUMBER ||
-    "5490000000000"; // <- poné tu número si no lo tenés en constants.js
+    "5492645694047"; // <- poné tu número si no lo tenés en constants.js
 
   const WA_BASE = `https://wa.me/${WA_NUMBER}`;
 
