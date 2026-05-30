@@ -2042,3 +2042,382 @@ body.sidebarCollapsed #sidebarHost{width:var(--sidebarCollapsedW)}
 .quickGrid{grid-template-columns:repeat(3, minmax(0, 1fr)) !important}
 @media (max-width:1100px){.quickGrid{grid-template-columns:repeat(2, minmax(0, 1fr)) !important}}
 @media (max-width:620px){.quickGrid{grid-template-columns:1fr !important}}
+
+/* =========================================================
+   PATCH RESPONSIVE COMPACTO - BIANTI ADMIN
+   Pegar al final de assets/css/admin.css
+========================================================= */
+
+body:not(.authBianti) {
+  --sidebarW: 250px;
+  --sidebarCollapsedW: 78px;
+}
+
+/* Sidebar más serio y menos gigante */
+body:not(.authBianti) .sidebar {
+  width: var(--sidebarW) !important;
+  padding: 18px 14px !important;
+}
+
+body:not(.authBianti) .sideLogoWrap {
+  width: 108px !important;
+  height: 108px !important;
+}
+
+body:not(.authBianti) .sideBrand {
+  padding-bottom: 16px !important;
+}
+
+body:not(.authBianti) .sideBrandName {
+  font-size: 17px !important;
+  letter-spacing: .20em !important;
+}
+
+body:not(.authBianti) .sideBrandSub {
+  font-size: 11px !important;
+  letter-spacing: .36em !important;
+}
+
+body:not(.authBianti) .sideLink {
+  min-height: 48px !important;
+  padding: 0 14px !important;
+  gap: 12px !important;
+  font-size: 14px !important;
+}
+
+body:not(.authBianti) .sideLink .side-icon {
+  width: 21px !important;
+  height: 21px !important;
+}
+
+body:not(.authBianti) .sideLink .side-icon svg {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+body:not(.authBianti) .btnLogout {
+  height: 48px !important;
+  padding: 0 14px !important;
+  font-size: 14px !important;
+}
+
+/* Contenido principal más compacto */
+body:not(.authBianti) .main,
+body:not(.authBianti) main.main,
+body:not(.authBianti) .content,
+body:not(.authBianti) .page-wrap {
+  padding: 98px 38px 30px !important;
+}
+
+body:not(.authBianti) .adminTopbar {
+  height: 76px !important;
+  right: 24px !important;
+}
+
+body:not(.authBianti) .main::before,
+body:not(.authBianti) main.main::before,
+body:not(.authBianti) .content::before,
+body:not(.authBianti) .page-wrap::before {
+  height: 76px !important;
+}
+
+/* Títulos */
+body:not(.authBianti) .head h1,
+body:not(.authBianti) .pageHead h1,
+body:not(.authBianti) .headerRow h1,
+body:not(.authBianti) h1,
+body:not(.authBianti) .page-title {
+  font-size: clamp(26px, 2.2vw, 34px) !important;
+}
+
+body:not(.authBianti) .head,
+body:not(.authBianti) .pageHead,
+body:not(.authBianti) .headerRow {
+  margin-bottom: 12px !important;
+}
+
+/* Botones superiores */
+body:not(.authBianti) .actions {
+  gap: 8px !important;
+}
+
+body:not(.authBianti) .btn {
+  height: 40px !important;
+  padding: 0 13px !important;
+  font-size: 14px !important;
+  border-radius: 10px !important;
+}
+
+/* KPI del dashboard */
+body:not(.authBianti) .cards.dashboardKpis {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+}
+
+body:not(.authBianti) .dashboardKpis .card,
+body:not(.authBianti) .cards.dashboardKpis > .card {
+  min-height: 108px !important;
+  padding: 18px !important;
+  grid-template-columns: 58px 1fr !important;
+  gap: 14px !important;
+}
+
+body:not(.authBianti) .dashboardKpis .card > svg {
+  width: 52px !important;
+  height: 52px !important;
+  padding: 15px !important;
+  border-radius: 14px !important;
+}
+
+body:not(.authBianti) .dashboardKpis .card .n {
+  font-size: clamp(24px, 2vw, 30px) !important;
+}
+
+body:not(.authBianti) .dashboardKpis .card .l {
+  font-size: 12px !important;
+  line-height: 1.25 !important;
+  letter-spacing: .06em !important;
+}
+
+/* Flujo de ventas */
+body:not(.authBianti) .salesFlow {
+  margin-top: 14px !important;
+  padding: 18px !important;
+}
+
+body:not(.authBianti) .salesFlow h2 {
+  font-size: 21px !important;
+  margin-bottom: 14px !important;
+}
+
+body:not(.authBianti) .flowSteps {
+  gap: 12px !important;
+}
+
+body:not(.authBianti) .flowSteps span {
+  width: 44px !important;
+  height: 44px !important;
+}
+
+body:not(.authBianti) .flowSteps strong {
+  font-size: 14px !important;
+}
+
+/* Paneles inferiores */
+body:not(.authBianti) .dashboardGrid {
+  gap: 14px !important;
+}
+
+body:not(.authBianti) .panel,
+body:not(.authBianti) .box,
+body:not(.authBianti) .card {
+  border-radius: 14px !important;
+}
+
+body:not(.authBianti) .quickGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+body:not(.authBianti) .quickAction {
+  min-height: 118px !important;
+  padding: 13px !important;
+}
+
+body:not(.authBianti) .quickIcon {
+  width: 34px !important;
+  height: 34px !important;
+}
+
+body:not(.authBianti) .quickAction strong {
+  font-size: 13px !important;
+}
+
+body:not(.authBianti) .quickAction small {
+  font-size: 11px !important;
+}
+
+/* Sidebar colapsado */
+body.sidebarCollapsed:not(.authBianti) .sidebar {
+  width: var(--sidebarCollapsedW) !important;
+  padding: 14px 8px !important;
+}
+
+body.sidebarCollapsed:not(.authBianti) .sideLogoWrap {
+  width: 52px !important;
+  height: 52px !important;
+}
+
+body.sidebarCollapsed:not(.authBianti) #sidebar-host,
+body.sidebarCollapsed:not(.authBianti) #sidebarHost {
+  width: var(--sidebarCollapsedW) !important;
+}
+
+body.sidebarCollapsed:not(.authBianti) .sideLink,
+body.sidebarCollapsed:not(.authBianti) .btnLogout {
+  width: 52px !important;
+  height: 52px !important;
+  min-height: 52px !important;
+}
+
+/* Notebook común: 1366px / 1280px */
+@media (max-width: 1366px) {
+  body:not(.authBianti) {
+    --sidebarW: 230px;
+  }
+
+  body:not(.authBianti) .main,
+  body:not(.authBianti) main.main,
+  body:not(.authBianti) .content,
+  body:not(.authBianti) .page-wrap {
+    padding: 92px 26px 28px !important;
+  }
+
+  body:not(.authBianti) .sideLogoWrap {
+    width: 92px !important;
+    height: 92px !important;
+  }
+
+  body:not(.authBianti) .sideLink {
+    min-height: 44px !important;
+    font-size: 13px !important;
+  }
+
+  body:not(.authBianti) .dashboardKpis .card,
+  body:not(.authBianti) .cards.dashboardKpis > .card {
+    min-height: 100px !important;
+    padding: 16px !important;
+  }
+
+  body:not(.authBianti) .dashboardKpis .card > svg {
+    width: 48px !important;
+    height: 48px !important;
+  }
+}
+
+/* Notebook chica / tablet horizontal */
+@media (max-width: 1180px) {
+  body:not(.authBianti) .cards.dashboardKpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  body:not(.authBianti) .flowSteps {
+    grid-template-columns: 1fr !important;
+  }
+
+  body:not(.authBianti) .flowSteps i {
+    display: none !important;
+  }
+
+  body:not(.authBianti) .flowSteps div {
+    justify-content: flex-start !important;
+  }
+
+  body:not(.authBianti) .dashboardBottom {
+    grid-template-columns: 1fr !important;
+  }
+
+  body:not(.authBianti) .quickGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+/* Tablet / celular grande */
+@media (max-width: 980px) {
+  body:not(.authBianti) {
+    --sidebarW: 78px;
+  }
+
+  body:not(.authBianti) .sidebar {
+    width: 78px !important;
+    padding: 14px 8px !important;
+  }
+
+  body:not(.authBianti) #sidebar-host,
+  body:not(.authBianti) #sidebarHost {
+    width: 78px !important;
+  }
+
+  body:not(.authBianti) .sideLogoWrap {
+    width: 52px !important;
+    height: 52px !important;
+  }
+
+  body:not(.authBianti) .sideBrandTxt,
+  body:not(.authBianti) .sideGroupTitle,
+  body:not(.authBianti) .sideLink span:not(.side-icon),
+  body:not(.authBianti) .sideVersion,
+  body:not(.authBianti) .sideSupport {
+    display: none !important;
+  }
+
+  body:not(.authBianti) .sideLink,
+  body:not(.authBianti) .btnLogout {
+    width: 52px !important;
+    height: 52px !important;
+    min-height: 52px !important;
+    padding: 0 !important;
+    justify-content: center !important;
+    margin-inline: auto !important;
+  }
+
+  body:not(.authBianti) .btnLogout {
+    font-size: 0 !important;
+  }
+
+  body:not(.authBianti) .main,
+  body:not(.authBianti) main.main,
+  body:not(.authBianti) .content,
+  body:not(.authBianti) .page-wrap {
+    padding: 90px 18px 26px !important;
+  }
+
+  body:not(.authBianti) .adminTopbar {
+    right: 16px !important;
+  }
+}
+
+/* Celular */
+@media (max-width: 620px) {
+  body:not(.authBianti) .main,
+  body:not(.authBianti) main.main,
+  body:not(.authBianti) .content,
+  body:not(.authBianti) .page-wrap {
+    padding: 84px 12px 22px !important;
+  }
+
+  body:not(.authBianti) .cards.dashboardKpis {
+    grid-template-columns: 1fr !important;
+  }
+
+  body:not(.authBianti) .dashboardKpis .card,
+  body:not(.authBianti) .cards.dashboardKpis > .card {
+    min-height: 96px !important;
+    grid-template-columns: 50px 1fr !important;
+  }
+
+  body:not(.authBianti) .dashboardKpis .card > svg {
+    width: 46px !important;
+    height: 46px !important;
+  }
+
+  body:not(.authBianti) .quickGrid {
+    grid-template-columns: 1fr !important;
+  }
+
+  body:not(.authBianti) .actions .btn {
+    width: 100% !important;
+  }
+
+  body:not(.authBianti) .adminTopbar {
+    gap: 10px !important;
+  }
+
+  body:not(.authBianti) .topUser span {
+    font-size: 13px !important;
+  }
+
+  body:not(.authBianti) .topUser small {
+    font-size: 11px !important;
+  }
+}
