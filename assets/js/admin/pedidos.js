@@ -41,6 +41,12 @@ const vmGuardar = $("vmGuardar");
 
 let rows = [];
 let editingId = null;
+const estadoLabels = {
+  en_revision: "En revisión",
+  vendido: "Vendido",
+  no_vendido: "No vendido",
+  cancelado: "Cancelado",
+};
 
 function esc(s){
   return String(s ?? "")
@@ -52,6 +58,8 @@ function money(n){
   if (!Number.isFinite(v)) return "$0";
   return v.toLocaleString("es-AR",{style:"currency",currency:"ARS"});
 }
+function labelEstado(estado){ return estadoLabels[estado] || estado || "—"; }
+function getPrecioPedido(p){ return p.producto_precio ?? p.precio_final ?? p.precio ?? p.total ?? null; }
 function toISOStart(d){ return new Date(d + "T00:00:00").toISOString(); }
 function toISOEnd(d){ return new Date(d + "T23:59:59").toISOString(); }
 
@@ -72,15 +80,15 @@ function openModalPedido(p){
 
   mTitle.textContent = `Pedido #${p.id}`;
   const d = new Date(p.created_at || p.fecha || Date.now());
-  mSub.textContent = `Creado: ${d.toLocaleString("es-AR")} · Canal: ${p.canal || "—"}`;
+  mSub.textContent = `Creado: ${d.toLocaleString("es-AR")} · Origen: ${p.origen || p.canal || "—"}`;
 
-  mEstado.value = p.estado || "consultado";
+  mEstado.value = p.estado || "en_revision";
   mProducto.value = p.producto_titulo || "";
   mCliente.value = p.cliente_nombre || "";
   mTel.value = p.cliente_telefono || "";
   mCant.value = p.cantidad ?? 1;
-  mPrecio.value = p.precio_final ?? "";
-  mNota.value = p.nota || "";
+  mPrecio.value = getPrecioPedido(p) ?? "";
+  mNota.value = p.nota || p.mensaje || "";
 
   mHint.textContent = `Si marcás “Vendido” + cantidad/precio, se crea una venta y entra en contabilidad.`;
 
@@ -139,6 +147,8 @@ async function load(){
         String(p.cliente_nombre||"").toLowerCase().includes(term) ||
         String(p.cliente_telefono||"").toLowerCase().includes(term) ||
         String(p.nota||"").toLowerCase().includes(term) ||
+        String(p.mensaje||"").toLowerCase().includes(term) ||
+        String(p.origen||"").toLowerCase().includes(term) ||
         String(p.estado||"").toLowerCase().includes(term)
       );
     }
@@ -152,17 +162,15 @@ async function load(){
 }
 
 function render(){
-  count.textContent = `${rows.length} pedido(s)`;
+  count.textContent = `${rows.length} consulta(s)`;
 
   const head = `
     <tr>
-      <th>ID</th>
       <th>Fecha</th>
       <th>Producto</th>
+      <th>Precio</th>
       <th>Estado</th>
-      <th>Cliente</th>
-      <th>Cant</th>
-      <th>Total</th>
+      <th>Origen</th>
       <th>Acciones</th>
     </tr>
   `;
@@ -170,20 +178,19 @@ function render(){
   const body = rows.map(p=>{
     const d = new Date(p.created_at || Date.now());
     const fecha = d.toLocaleString("es-AR",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});
-    const cliente = [p.cliente_nombre, p.cliente_telefono].filter(Boolean).join(" · ") || "—";
-    const total = (p.total != null) ? money(p.total) : "—";
+    const precio = getPrecioPedido(p);
     return `
       <tr>
-        <td><strong>#${p.id}</strong></td>
         <td>${fecha}</td>
         <td>${esc(p.producto_titulo || `Producto ${p.producto_id ?? "—"}`)}</td>
-        <td><span class="tag">${esc(p.estado || "—")}</span></td>
-        <td>${esc(cliente)}</td>
-        <td>${p.cantidad ?? 1}</td>
-        <td><strong>${total}</strong></td>
+        <td><strong>${precio != null ? money(precio) : "—"}</strong></td>
+        <td><span class="tag tag-${esc(p.estado || "")}">${esc(labelEstado(p.estado))}</span></td>
+        <td>${esc(p.origen || p.canal || "—")}</td>
         <td>
-          <button class="btn btnMini" data-act="open" data-id="${p.id}">Abrir</button>
-          <button class="btn btnMini primary" data-act="sell" data-id="${p.id}">Vender</button>
+          <button class="btn btnMini primary" data-act="estado" data-estado="vendido" data-id="${p.id}">Marcar como vendido</button>
+          <button class="btn btnMini" data-act="estado" data-estado="no_vendido" data-id="${p.id}">Marcar como no vendido</button>
+          <button class="btn btnMini" data-act="estado" data-estado="cancelado" data-id="${p.id}">Marcar como cancelado</button>
+          <button class="btn btnMini bad" data-act="delete" data-id="${p.id}">Eliminar</button>
         </td>
       </tr>
     `;
@@ -197,15 +204,42 @@ function render(){
       const p = rows.find(x=>x.id===id);
       if (!p) return;
 
-      if (btn.dataset.act === "open") openModalPedido(p);
-
-      if (btn.dataset.act === "sell") {
-        // Tu flujo: abrir modal y pre-set a vendido, con autocompletado del producto
-        openModalPedido(p);
-        mEstado.value = "vendido";
-      }
+      if (btn.dataset.act === "estado") updateEstado(id, btn.dataset.estado);
+      if (btn.dataset.act === "delete") deletePedido(id);
     });
   });
+}
+
+async function updateEstado(id, estado){
+  try{
+    const { error } = await sb.from("pedidos").update({ estado }).eq("id", id);
+    if (error) throw error;
+    if (fEstado.value && fEstado.value !== estado) {
+      rows = rows.filter(x=>x.id!==id);
+    } else {
+      const p = rows.find(x=>x.id===id);
+      if (p) p.estado = estado;
+    }
+    render();
+    trackEvent("pedido_estado", { pedido_id: id, estado }, null, "admin");
+  } catch (e){
+    console.error(e);
+    alert(e.message || "Error actualizando estado");
+  }
+}
+
+async function deletePedido(id){
+  try{
+    if (!confirm("¿Seguro que querés eliminar esta consulta?")) return;
+    const { error } = await sb.from("pedidos").delete().eq("id", id);
+    if (error) throw error;
+    rows = rows.filter(x=>x.id!==id);
+    render();
+    trackEvent("pedido_eliminado", { pedido_id: id }, null, "admin");
+  } catch (e){
+    console.error(e);
+    alert(e.message || "Error eliminando");
+  }
 }
 
 async function savePedidoBasic(){
@@ -219,6 +253,7 @@ async function savePedidoBasic(){
     cantidad: Number(mCant.value || 1),
     precio_final: (mPrecio.value === "" ? null : Number(mPrecio.value)),
     nota: mNota.value.trim() || null,
+    mensaje: mNota.value.trim() || null,
   };
 
   const { error } = await sb.from("pedidos").update(patch).eq("id", editingId);
@@ -324,16 +359,18 @@ mVender.addEventListener("click", async ()=>{
 mDelete.addEventListener("click", async ()=>{
   try{
     if (!editingId) return;
-    if (!confirm("¿Eliminar este pedido?")) return;
+    if (!confirm("¿Seguro que querés eliminar esta consulta?")) return;
 
-    const { error } = await sb.from("pedidos").delete().eq("id", editingId);
+    const id = editingId;
+    const { error } = await sb.from("pedidos").delete().eq("id", id);
     if (error) throw error;
 
     // TRACKING
-    trackEvent("pedido_eliminado", { pedido_id: editingId }, null, "admin");
+    trackEvent("pedido_eliminado", { pedido_id: id }, null, "admin");
 
     closeModalPedido();
-    await load();
+    rows = rows.filter(x=>x.id!==id);
+    render();
   } catch (e){
     console.error(e);
     alert(e.message || "Error eliminando");

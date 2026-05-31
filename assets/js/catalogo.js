@@ -74,7 +74,7 @@
     }
   };
 
-  const buildWaText = (p, extra = {}) => {
+  const buildWaMessage = (p, extra = {}) => {
     const titulo = p?.titulo || p?.nombre || `Producto #${p?.id ?? ""}`;
     const catName = extra?.categoria_nombre || "";
     const precio = extra?.precio_txt || "";
@@ -88,10 +88,49 @@
       "¿Esta disponible?",
     ].filter(Boolean);
 
-    return encodeURIComponent(lines.join("\n"));
+    return lines.join("\n");
   };
 
+  const buildWaText = (p, extra = {}) => encodeURIComponent(buildWaMessage(p, extra));
+
   const waLink = (textEncoded) => `${WA_BASE}?text=${textEncoded}`;
+
+  async function crearPedidoWhatsapp(p, extra = {}) {
+    const precio = getPrecio(p);
+    const mensaje = buildWaMessage(p, extra);
+
+    const { error } = await sb.from("pedidos").insert([{
+      producto_id: p?.id ?? null,
+      producto_titulo: p?.titulo || p?.nombre || null,
+      producto_precio: Number.isFinite(Number(precio)) ? Number(precio) : null,
+      producto_imagen: getCoverUrl(p) || null,
+      estado: "en_revision",
+      mensaje,
+      origen: "catalogo_whatsapp",
+      created_at: new Date().toISOString(),
+    }]);
+
+    if (error) throw error;
+  }
+
+  async function handleWhatsappClick(e, p, extra = {}) {
+    e.preventDefault();
+    const url = waLink(buildWaText(p, extra));
+    const waWindow = window.open("", "_blank");
+    if (waWindow) waWindow.opener = null;
+
+    try {
+      await crearPedidoWhatsapp(p, extra);
+    } catch (err) {
+      console.error("No se pudo guardar la consulta de WhatsApp:", err);
+    } finally {
+      if (waWindow) {
+        waWindow.location.href = url;
+      } else {
+        window.location.href = url;
+      }
+    }
+  }
 
   const formatPhone = (value) => {
     const digits = String(value || "").replace(/\D/g, "");
@@ -268,8 +307,8 @@
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                 Ver detalle
               </button>
-              <a class="btn btn--primary btn-wa" target="_blank" rel="noopener"
-                 href="${waLink(buildWaText(p, { categoria_nombre: catName, precio_txt: precioTxt }))}">
+              <a class="btn btn--primary btn-wa" target="_blank" rel="noopener" data-id="${esc(p.id)}"
+                  href="${waLink(buildWaText(p, { categoria_nombre: catName, precio_txt: precioTxt }))}">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
                 WhatsApp
               </a>
@@ -411,6 +450,15 @@
       });
     });
 
+    grid.querySelectorAll(".btn-wa").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const id = btn.dataset.id;
+        const p = productos.find((x) => String(x.id) === String(id));
+        if (!p) return;
+        handleWhatsappClick(e, p, { categoria_nombre: getCategoriaNombre(p), precio_txt: money(getPrecio(p)) });
+      });
+    });
+
     // Sizes
     const talles = (tallesByProducto.get(p.id) || []).filter(Boolean);
     if (talles.length) {
@@ -421,6 +469,7 @@
 
     // WhatsApp link
     mWa.href = waLink(buildWaText(p, { categoria_nombre: catName, precio_txt: precioTxt }));
+    mWa.onclick = (e) => handleWhatsappClick(e, p, { categoria_nombre: catName, precio_txt: precioTxt });
 
     // Tracking
     logEvent("view_product", {
