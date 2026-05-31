@@ -34,6 +34,7 @@
   // Modal refs
   const modal = $("#modal");
   const mImg = $("#m-img");
+  const mZoom = $("#m-zoom");
   const mThumbs = $("#m-thumbs");
   const mCat = $("#m-cat");
   const mTitle = $("#m-title");
@@ -41,6 +42,8 @@
   const mDesc = $("#m-desc");
   const mSizes = $("#m-sizes");
   const mWa = $("#m-wa");
+  const lightbox = $("#lightbox");
+  const lightboxImg = $("#lightbox-img");
 
   // Carousel
   const carouselTrack = $("#carousel-track");
@@ -135,18 +138,52 @@
   function closeModal() {
     modal?.setAttribute("aria-hidden", "true");
     modal?.classList.remove("is-open");
+    closeLightbox();
     document.documentElement.classList.remove("modal-open");
+  }
+
+  function openLightbox() {
+    const src = mImg?.getAttribute("src") || "";
+    if (!lightbox || !lightboxImg || !src) return;
+    lightboxImg.src = src;
+    lightboxImg.alt = mImg.alt || "Imagen de producto";
+    lightbox.setAttribute("aria-hidden", "false");
+    lightbox.classList.add("is-open");
+  }
+
+  function closeLightbox() {
+    if (!lightbox) return;
+    lightbox.setAttribute("aria-hidden", "true");
+    lightbox.classList.remove("is-open");
+    if (lightboxImg) {
+      lightboxImg.src = "";
+      lightboxImg.alt = "";
+    }
   }
 
   function bindModalClose() {
     if (!modal) return;
     modal.addEventListener("click", (e) => {
       const t = e.target;
-      if (t?.dataset?.close != null) closeModal();
+      if (t?.closest?.("[data-close]")) closeModal();
     });
     window.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && modal.classList.contains("is-open")) closeModal();
+      if (e.key !== "Escape") return;
+      if (lightbox?.classList.contains("is-open")) {
+        closeLightbox();
+        return;
+      }
+      if (modal.classList.contains("is-open")) closeModal();
     });
+  }
+
+  function bindLightbox() {
+    lightbox?.addEventListener("click", (e) => {
+      const t = e.target;
+      if (t?.closest?.("[data-lightbox-close]")) closeLightbox();
+    });
+    mImg?.addEventListener("click", openLightbox);
+    mZoom?.addEventListener("click", openLightbox);
   }
 
   function getCategoriaNombre(p) {
@@ -162,9 +199,22 @@
   }
 
   function getCoverUrl(p) {
-    const arr = fotosByProducto.get(p.id) || [];
-    const first = arr[0];
-    return first?.url || p.imagen_url || p.foto_url || "";
+    return p.portada_url || p.imagen_url || p.foto_url || "";
+  }
+
+  function getGalleryUrls(p) {
+    const urls = [];
+    const seen = new Set();
+    const addUrl = (url) => {
+      const value = String(url || "").trim();
+      if (!value || seen.has(value)) return;
+      seen.add(value);
+      urls.push(value);
+    };
+
+    addUrl(p.portada_url);
+    (fotosByProducto.get(p.id) || []).forEach((foto) => addUrl(foto.url));
+    return urls;
   }
 
   function applyFilters() {
@@ -331,10 +381,10 @@
     mDesc.textContent = p.descripcion || "Consultá por WhatsApp para más detalles.";
 
     // Gallery
-    const arr = fotosByProducto.get(p.id) || [];
-    const list = arr.length ? arr.map((x) => x.url) : [getCoverUrl(p)];
+    const list = getGalleryUrls(p);
     const hasModalImg = list[0] && list[0].length > 0;
     mImg.style.display = hasModalImg ? "block" : "none";
+    if (mZoom) mZoom.hidden = !hasModalImg;
     if (hasModalImg) {
       mImg.src = list[0];
       mImg.alt = p.titulo || p.nombre || "Producto";
@@ -344,17 +394,20 @@
       mImg.style.display = "none";
     }
 
-    mThumbs.innerHTML = list.map((u, idx) => `
-      <button class="thumb ${idx === 0 ? "is-active" : ""}" type="button" data-url="${esc(u)}">
-        <img src="${esc(u)}" alt="Foto ${idx + 1}">
-      </button>
-    `).join("");
+    mThumbs.innerHTML = list.length
+      ? list.map((u, idx) => `
+        <button class="thumb ${idx === 0 ? "is-active" : ""}" type="button" data-url="${esc(u)}">
+          <img src="${esc(u)}" alt="Foto ${idx + 1}">
+        </button>
+      `).join("")
+      : `<span class="muted">Sin imagen</span>`;
 
     mThumbs.querySelectorAll(".thumb").forEach((t) => {
       t.addEventListener("click", () => {
         mThumbs.querySelectorAll(".thumb").forEach((x) => x.classList.remove("is-active"));
         t.classList.add("is-active");
         mImg.src = t.dataset.url;
+        mImg.alt = p.titulo || p.nombre || "Producto";
       });
     });
 
@@ -505,6 +558,7 @@
 
   // Init
   bindModalClose();
+  bindLightbox();
   bindFilters();
   loadData();
 })();

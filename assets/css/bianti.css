@@ -359,8 +359,8 @@ button, input, select{font:inherit}
 }
 
 /* Modal */
-.modal{position:fixed; inset:0; display:none; z-index:80}
-.modal.is-open{display:block}
+.modal{position:fixed; inset:0; display:none; z-index:80; padding:24px}
+.modal.is-open{display:grid; place-items:center}
 .modal__backdrop{
   position:absolute; inset:0;
   background: rgba(0,0,0,.62);
@@ -368,13 +368,14 @@ button, input, select{font:inherit}
 }
 .modal__panel{
   position:relative;
-  width:min(980px, calc(100% - 28px));
-  margin: 44px auto;
+  width:min(1100px, 92vw);
+  max-height:88vh;
+  margin:0;
   border-radius: 22px;
   border:1px solid var(--line);
   background: linear-gradient(180deg, rgba(14,15,22,.95), rgba(10,10,14,.92));
   box-shadow: var(--shadow);
-  overflow:hidden;
+  overflow:auto;
 }
 .modal.is-open .modal__backdrop{
   animation:modalFadeIn .2s ease;
@@ -400,17 +401,18 @@ button, input, select{font:inherit}
 }
 .modal__grid{
   display:grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, .85fr);
   gap:0;
 }
-.gallery{padding:16px; border-right:1px solid var(--line)}
+.gallery{padding:20px; border-right:1px solid var(--line)}
 .gallery__main{
   border-radius:18px;
   overflow:hidden;
   border:1px solid var(--line);
-  background: rgba(0,0,0,.18);
+  background: #f5f2ec;
 }
-.gallery__main img{width:100%; height:420px; object-fit:cover}
+.gallery__main img{width:100%; height:min(58vh, 560px); min-height:520px; object-fit:contain; cursor:zoom-in}
+.gallery__zoom{width:100%; margin-top:12px}
 .gallery__thumbs{display:flex; gap:10px; margin-top:12px; overflow:auto; padding-bottom:6px}
 .thumb{
   width:78px; height:78px;
@@ -423,7 +425,7 @@ button, input, select{font:inherit}
 }
 .thumb img{width:100%; height:100%; object-fit:cover}
 .thumb.is-active{border-color: rgba(167,139,250,.8)}
-.modal__info{padding:18px}
+.modal__info{padding:24px 22px}
 .kicker{font-size:12px; color:rgba(244,245,255,.68)}
 .modal__info h3{margin:6px 0 8px; font-size:24px; letter-spacing:-.4px}
 .price{font-size:20px; font-weight:900}
@@ -441,6 +443,49 @@ button, input, select{font:inherit}
 .chip--muted{color: rgba(244,245,255,.70)}
 .modal__actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px}
 .modal__actions .btn{height:42px}
+.lightbox{
+  position:fixed;
+  inset:0;
+  z-index:90;
+  display:none;
+  place-items:center;
+  padding:24px;
+}
+.lightbox.is-open{display:grid}
+.lightbox__backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.84);
+  backdrop-filter:blur(4px);
+}
+.lightbox__content{
+  position:relative;
+  z-index:1;
+  max-width:min(96vw, 1180px);
+  max-height:92vh;
+}
+.lightbox__content img{
+  display:block;
+  max-width:100%;
+  max-height:92vh;
+  object-fit:contain;
+  border-radius:18px;
+  background:#f5f2ec;
+  box-shadow:0 24px 80px rgba(0,0,0,.55);
+}
+.lightbox__close{
+  position:absolute;
+  top:18px;
+  right:18px;
+  z-index:2;
+  width:44px;
+  height:44px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.22);
+  background:rgba(0,0,0,.55);
+  color:#fff;
+  cursor:pointer;
+}
 
 /* Responsive */
 @media (max-width: 980px){
@@ -448,9 +493,12 @@ button, input, select{font:inherit}
   .hero__grid{grid-template-columns: 1fr}
   .hero{min-height:auto}
   .hero__showcase{min-height: 320px}
+  .modal{padding:14px}
+  .modal__panel{width:94vw; max-height:90vh}
   .modal__grid{grid-template-columns:1fr}
   .gallery{border-right:0; border-bottom:1px solid var(--line)}
-  .gallery__main img{height: 340px}
+  .gallery__main img{height: 340px; min-height:0}
+  .lightbox{padding:14px}
 }
 @media (max-width: 720px){
   .nav{display:none}
@@ -623,7 +671,7 @@ body.modal-open{ overflow:hidden; }
   margin-bottom:12px;
 }
 .modal__panel{
-  max-height:calc(100vh - 40px);
+  max-height:88vh;
   overflow:auto;
 }
 

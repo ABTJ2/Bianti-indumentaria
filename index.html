@@ -156,6 +156,7 @@
           <div class="gallery__main">
             <img id="m-img" alt="" />
           </div>
+          <button class="gallery__zoom btn btn--ghost" id="m-zoom" type="button">Ver imagen completa</button>
           <div class="gallery__thumbs" id="m-thumbs"></div>
         </div>
 
@@ -183,6 +184,16 @@
           </p>
         </div>
       </div>
+    </div>
+  </div>
+
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <div class="lightbox__backdrop" data-lightbox-close></div>
+    <button class="lightbox__close" type="button" aria-label="Cerrar imagen" data-lightbox-close>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="lightbox__content" role="dialog" aria-modal="true" aria-label="Imagen ampliada">
+      <img id="lightbox-img" alt="" />
     </div>
   </div>
 
