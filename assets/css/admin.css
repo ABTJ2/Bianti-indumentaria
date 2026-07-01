@@ -2421,3 +2421,267 @@ body.sidebarCollapsed:not(.authBianti) .btnLogout {
     font-size: 11px !important;
   }
 }
+
+/* =========================================================
+   FIX FINAL JESUS - PRODUCTOS / IMPORTACION / RESPONSIVE
+   Mantiene el diseño, pero lo hace usable en notebooks chicas.
+========================================================= */
+body:not(.authBianti){
+  --sidebarW: 220px !important;
+  --sidebarCollapsedW: 72px !important;
+  --control-h: 36px !important;
+  font-size: 13px !important;
+}
+
+body:not(.authBianti) .main,
+body:not(.authBianti) main.main,
+body:not(.authBianti) .content,
+body:not(.authBianti) .page-wrap{
+  padding: 82px 20px 24px !important;
+  min-width: 0 !important;
+}
+
+body:not(.authBianti) h1,
+body:not(.authBianti) .h1,
+body:not(.authBianti) .page-title{
+  font-size: clamp(23px, 1.9vw, 28px) !important;
+  line-height: 1.05 !important;
+  margin-bottom: 6px !important;
+}
+body:not(.authBianti) h2,
+body:not(.authBianti) .h2{font-size:20px !important;}
+body:not(.authBianti) h3,
+body:not(.authBianti) .h3{font-size:15px !important;}
+body:not(.authBianti) .muted,
+body:not(.authBianti) .muted2,
+body:not(.authBianti) .help,
+body:not(.authBianti) .tiny{font-size:11px !important; line-height:1.35 !important;}
+
+body:not(.authBianti) .head,
+body:not(.authBianti) .pageHead,
+body:not(.authBianti) .headerRow{
+  align-items: center !important;
+  gap: 12px !important;
+  margin-bottom: 10px !important;
+}
+
+body:not(.authBianti) .panel,
+body:not(.authBianti) .card,
+body:not(.authBianti) .box{
+  padding: 12px !important;
+  border-radius: 12px !important;
+}
+
+body:not(.authBianti) .toolbar{
+  padding: 9px !important;
+  margin-bottom: 10px !important;
+  gap: 8px !important;
+}
+body:not(.authBianti) .toolbar .left{
+  gap: 8px !important;
+  min-width: 0 !important;
+}
+body:not(.authBianti) .toolbar input,
+body:not(.authBianti) .toolbar .pill{
+  min-height: 34px !important;
+  font-size: 12px !important;
+}
+body:not(.authBianti) .toolbar input[style*="min-width"]{
+  min-width: min(260px, 100%) !important;
+}
+
+body:not(.authBianti) .btn{
+  height: 34px !important;
+  padding: 0 10px !important;
+  font-size: 12px !important;
+  border-radius: 9px !important;
+  gap: 6px !important;
+}
+body:not(.authBianti) .btnMini,
+body:not(.authBianti) .btn.mini{
+  height: 30px !important;
+  padding: 0 8px !important;
+  font-size: 11px !important;
+  border-radius: 8px !important;
+}
+body:not(.authBianti) .actions,
+body:not(.authBianti) .actionsRow{gap:6px !important;}
+
+body:not(.authBianti) .tableWrap{
+  overflow: auto !important;
+  max-height: calc(100vh - 210px) !important;
+  border-radius: 12px !important;
+}
+body:not(.authBianti) .table,
+body:not(.authBianti) table{
+  min-width: 820px !important;
+  font-size: 11.5px !important;
+}
+body:not(.authBianti) table th,
+body:not(.authBianti) table td,
+body:not(.authBianti) .table th,
+body:not(.authBianti) .table td{
+  padding: 8px 9px !important;
+  vertical-align: middle !important;
+}
+body:not(.authBianti) table th{font-size:11px !important;}
+body:not(.authBianti) tbody td:last-child{white-space:normal !important;}
+body:not(.authBianti) .thumb{
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 9px !important;
+  object-fit: cover !important;
+}
+body:not(.authBianti) .chip,
+body:not(.authBianti) .chipBtn,
+body:not(.authBianti) .tag,
+body:not(.authBianti) .badge-status{
+  min-height: 25px !important;
+  padding: 4px 8px !important;
+  font-size: 10.5px !important;
+}
+body:not(.authBianti) .chips{gap:5px !important;}
+
+body:not(.authBianti) .modalOverlay{
+  padding: 10px !important;
+  z-index: 9999 !important;
+}
+body:not(.authBianti) .modal{
+  width: min(900px, 100%) !important;
+  max-height: calc(100vh - 20px) !important;
+  padding: 14px !important;
+  border-radius: 14px !important;
+}
+body:not(.authBianti) .formgrid,
+body:not(.authBianti) .formGrid,
+body:not(.authBianti) .grid2,
+body:not(.authBianti) .two{
+  gap: 10px !important;
+}
+body:not(.authBianti) .sep,
+body:not(.authBianti) .hr{margin: 11px 0 !important;}
+body:not(.authBianti) input:not([type="checkbox"]):not([type="radio"]),
+body:not(.authBianti) select,
+body:not(.authBianti) textarea{
+  min-height: 36px !important;
+  padding: 8px 10px !important;
+  font-size: 12px !important;
+}
+body:not(.authBianti) textarea{min-height: 78px !important;}
+body:not(.authBianti) .drop,
+body:not(.authBianti) .uploadBox{
+  padding: 10px !important;
+  border-radius: 12px !important;
+}
+body:not(.authBianti) .thumbBig{
+  width: 64px !important;
+  height: 64px !important;
+  border-radius: 10px !important;
+}
+body:not(.authBianti) .itemLine,
+body:not(.authBianti) .thumbs .thumb{
+  padding: 8px !important;
+  gap: 8px !important;
+  border-radius: 10px !important;
+}
+body:not(.authBianti) .itemLine img,
+body:not(.authBianti) .thumbs .thumb img{
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 9px !important;
+}
+
+/* Sidebar activo: siempre se ve dónde estás parado */
+body:not(.authBianti) .sideLink.active,
+body:not(.authBianti) .sideLink.is-active{
+  background: linear-gradient(135deg, rgba(124,58,237,.95), rgba(217,70,239,.78)) !important;
+  color: #fff !important;
+  border-color: rgba(255,255,255,.26) !important;
+  box-shadow: 0 12px 28px rgba(124,58,237,.28) !important;
+}
+body:not(.authBianti) .sideLink.active .side-icon,
+body:not(.authBianti) .sideLink.is-active .side-icon{
+  background: rgba(255,255,255,.16) !important;
+}
+
+/* Modal de confirmación interno y notificaciones dentro del sistema */
+.systemModalOverlay{display:flex !important;}
+.systemModal{
+  width:min(420px, 100%) !important;
+  text-align:center !important;
+  color:var(--admin-ink, #171721) !important;
+  background:#fff !important;
+}
+.systemModal h3{margin:8px 0 6px !important; color:var(--admin-ink, #171721) !important;}
+.systemModal p{margin:0 0 14px !important; color:var(--admin-muted, #615b6d) !important; line-height:1.45 !important;}
+.systemModalIcon{
+  width:40px; height:40px; margin:0 auto 8px; border-radius:50%; display:grid; place-items:center;
+  font-weight:950; background:#efe7fb; color:#5a24a0;
+}
+.systemModalIcon.danger{background:#fdeaea; color:#a31212;}
+.systemModalActions{justify-content:center !important; gap:8px !important;}
+.toastHost{
+  position:fixed;
+  right:18px;
+  bottom:18px;
+  z-index:10000;
+  display:grid;
+  gap:8px;
+  max-width:min(360px, calc(100vw - 28px));
+}
+.adminToast{
+  padding:10px 12px;
+  border-radius:12px;
+  background:#fff;
+  color:#171721;
+  border:1px solid #e6e0ef;
+  box-shadow:0 16px 40px rgba(18,15,28,.16);
+  font-weight:850;
+  font-size:12px;
+  animation:toastIn .18s ease both;
+}
+.adminToast.success{border-color:#b8e8c7; color:#08783a;}
+.adminToast.error{border-color:#ffc6c6; color:#a31212;}
+.adminToast.info{border-color:#d8c5ff; color:#4f20a0;}
+.adminToast.leaving{animation:toastOut .2s ease both;}
+@keyframes toastIn{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:translateY(0)}}
+@keyframes toastOut{from{opacity:1; transform:translateY(0)} to{opacity:0; transform:translateY(8px)}}
+
+@media (max-width: 1366px){
+  body:not(.authBianti){--sidebarW: 205px !important;}
+  body:not(.authBianti) .main,
+  body:not(.authBianti) main.main{padding:76px 16px 22px !important;}
+  body:not(.authBianti) .sideLogoWrap{width:72px !important; height:72px !important;}
+  body:not(.authBianti) .sideLink{min-height:38px !important; font-size:12px !important; padding:0 10px !important;}
+  body:not(.authBianti) .btnLogout{height:38px !important; font-size:12px !important; padding:0 10px !important;}
+  body:not(.authBianti) .tableWrap{max-height:calc(100vh - 190px) !important;}
+}
+@media (max-width: 1180px){
+  body:not(.authBianti){--sidebarW: 72px !important;}
+  body:not(.authBianti) #sidebar-host,
+  body:not(.authBianti) #sidebarHost{width:72px !important;}
+  body:not(.authBianti) .sidebar{width:72px !important; padding:10px 7px !important;}
+  body:not(.authBianti) .sideBrandTxt,
+  body:not(.authBianti) .sideGroupTitle,
+  body:not(.authBianti) .sideLink span:not(.side-icon),
+  body:not(.authBianti) .sideVersion,
+  body:not(.authBianti) .sideSupport{display:none !important;}
+  body:not(.authBianti) .sideLink,
+  body:not(.authBianti) .btnLogout{width:48px !important; height:48px !important; min-height:48px !important; padding:0 !important; justify-content:center !important; margin-inline:auto !important;}
+  body:not(.authBianti) .btnLogout{font-size:0 !important;}
+}
+@media (max-width: 760px){
+  body:not(.authBianti) .head,
+  body:not(.authBianti) .pageHead,
+  body:not(.authBianti) .headerRow{align-items:stretch !important; flex-direction:column !important;}
+  body:not(.authBianti) .toolbar,
+  body:not(.authBianti) .toolbar .left{align-items:stretch !important; flex-direction:column !important;}
+  body:not(.authBianti) .toolbar > *,
+  body:not(.authBianti) .toolbar .left > *,
+  body:not(.authBianti) .pill{width:100% !important;}
+  body:not(.authBianti) .hideMobile{display:none !important;}
+  body:not(.authBianti) .formgrid,
+  body:not(.authBianti) .formGrid,
+  body:not(.authBianti) .grid2,
+  body:not(.authBianti) .two{grid-template-columns:1fr !important;}
+}

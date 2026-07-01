@@ -1,3 +1,5 @@
+import { confirmDialog, showToast } from "./admin-core.js";
+
 // assets/js/admin/productos.js
 // Lista de productos + buscador.
 // Acciones: editar, visible/oculto, disponible/no y eliminar.
@@ -130,6 +132,8 @@ let editId = null;
 let selectedCatIds = new Set();
 let selectedTalles = new Set();
 let portadaActualUrl = "";
+let portadaRemove = false;
+let portadaOriginalToRemove = "";
 let portadaFile = null;
 let extrasFiles = [];          // File[]
 let extrasPreview = [];        // {name, blobUrl, file}
@@ -153,12 +157,14 @@ async function load(){
   clearStatus();
   tabla.innerHTML = `<tr><td class="muted">Cargando…</td></tr>`;
 
-  await loadCategorias();
-
-  const { data: prods, error } = await supabase
+  const categoriasPromise = loadCategorias();
+  const productosPromise = supabase
     .from("productos")
     .select("id,titulo,descripcion,precio,visible,disponible,portada_url,created_at")
     .order("id", { ascending:false });
+
+  await categoriasPromise;
+  const { data: prods, error } = await productosPromise;
 
   if (error){
     console.error(error);
@@ -174,22 +180,14 @@ async function load(){
   let fotos = [];
 
   if (ids.length){
-    const r1 = await supabase
-      .from("producto_categorias")
-      .select("producto_id,categoria_id")
-      .in("producto_id", ids);
+    const [r1, r2, r3] = await Promise.all([
+      supabase.from("producto_categorias").select("producto_id,categoria_id").in("producto_id", ids),
+      supabase.from("producto_talles").select("producto_id,talle").in("producto_id", ids),
+      supabase.from("producto_fotos").select("id,producto_id,url,orden").in("producto_id", ids),
+    ]);
+
     if (!r1.error) catLinks = r1.data || [];
-
-    const r2 = await supabase
-      .from("producto_talles")
-      .select("producto_id,talle")
-      .in("producto_id", ids);
     if (!r2.error) talles = r2.data || [];
-
-    const r3 = await supabase
-      .from("producto_fotos")
-      .select("id,producto_id,url,orden")
-      .in("producto_id", ids);
     if (!r3.error) fotos = r3.data || [];
   }
 
@@ -260,7 +258,7 @@ function render(){
       <th class="hideMobile">Talles</th>
       <th>Precio</th>
       <th>Estado</th>
-      <th style="width:300px;text-align:right">Acciones</th>
+      <th style="width:220px;text-align:right">Acciones</th>
     </tr>
   `;
 
@@ -312,7 +310,15 @@ function render(){
   tabla.querySelectorAll("button[data-del]").forEach(btn => {
     btn.addEventListener("click", async () => {
       const id = Number(btn.dataset.del);
-      if (!confirm(`¿Eliminar producto #${id}? Esto borra también sus fotos/talles/categorías.`)) return;
+      const prod = cache.find(x => x.id === id);
+      const ok = await confirmDialog({
+        title: "Eliminar producto",
+        message: `Vas a eliminar ${prod?.titulo || `producto #${id}`}. También se borran sus categorías, talles y fotos del sistema.`,
+        confirmText: "Sí, eliminar",
+        cancelText: "Cancelar",
+        danger: true,
+      });
+      if (!ok) return;
       await eliminarProducto(id);
     });
   });
@@ -342,29 +348,40 @@ async function toggleCampo(id, campo, valor){
   const { error } = await supabase.from("productos").update({ [campo]: valor }).eq("id", id);
   if (error){
     console.error(error);
+    showToast("No se pudo actualizar el producto.", "error");
     return showStatus("No se pudo actualizar. Mirá consola.", true);
   }
   const p = cache.find(x => x.id === id);
   if (p) p[campo] = valor;
   render();
+  showToast("Producto actualizado.", "success");
 }
 
 async function eliminarProducto(id){
   clearStatus();
 
-  await supabase.from("producto_categorias").delete().eq("producto_id", id);
-  await supabase.from("producto_talles").delete().eq("producto_id", id);
-  await supabase.from("producto_fotos").delete().eq("producto_id", id);
+  const deletes = await Promise.all([
+    supabase.from("producto_categorias").delete().eq("producto_id", id),
+    supabase.from("producto_talles").delete().eq("producto_id", id),
+    supabase.from("producto_fotos").delete().eq("producto_id", id),
+  ]);
+  const relError = deletes.find(r => r.error)?.error;
+  if (relError){
+    console.error(relError);
+    showToast("No se pudieron borrar las relaciones del producto.", "error");
+    return showStatus("No se pudo eliminar por completo. Mirá consola.", true);
+  }
 
   const { error } = await supabase.from("productos").delete().eq("id", id);
   if (error){
     console.error(error);
+    showToast("No se pudo eliminar el producto.", "error");
     return showStatus("No se pudo eliminar. Mirá consola.", true);
   }
 
-  showStatus("Producto eliminado.");
   cache = cache.filter(x => x.id !== id);
   render();
+  showToast("Producto eliminado.", "success");
 }
 
 // ---------------- Modal: open/close ----------------
@@ -373,6 +390,8 @@ function resetModalState(){
   selectedCatIds = new Set();
   selectedTalles = new Set();
   portadaActualUrl = "";
+  portadaRemove = false;
+  portadaOriginalToRemove = "";
   portadaFile = null;
   extrasFiles = [];
   extrasPreview.forEach(x => x.blobUrl && URL.revokeObjectURL(x.blobUrl));
@@ -519,16 +538,43 @@ mTalleCustom.addEventListener("keydown", (e) => {
 mPortadaFile.addEventListener("change", () => {
   portadaFile = mPortadaFile.files?.[0] || null;
   if (portadaFile){
+    portadaRemove = false;
+    portadaOriginalToRemove = "";
     const url = URL.createObjectURL(portadaFile);
     mPortadaPreview.src = url;
   } else {
     mPortadaPreview.src = portadaActualUrl || "";
   }
 });
-mBtnLimpiarPortada.addEventListener("click", () => {
-  mPortadaFile.value = "";
-  portadaFile = null;
-  mPortadaPreview.src = portadaActualUrl || "";
+mBtnLimpiarPortada.addEventListener("click", async () => {
+  if (portadaFile){
+    mPortadaFile.value = "";
+    portadaFile = null;
+    mPortadaPreview.src = portadaActualUrl || "";
+    showMStatus("Se quitó la nueva portada seleccionada. La portada guardada queda igual.");
+    return;
+  }
+
+  if (!portadaActualUrl){
+    mPortadaPreview.src = "";
+    showMStatus("Este producto no tiene portada para quitar.");
+    return;
+  }
+
+  const ok = await confirmDialog({
+    title: "Quitar portada",
+    message: "La portada quedará vacía cuando guardes los cambios.",
+    confirmText: "Quitar portada",
+    cancelText: "Cancelar",
+    danger: true,
+  });
+  if (!ok) return;
+
+  portadaRemove = true;
+  portadaOriginalToRemove = portadaActualUrl;
+  portadaActualUrl = "";
+  mPortadaPreview.src = "";
+  showMStatus("Portada marcada para quitar. Tocá Guardar cambios para confirmar.");
 });
 
 mExtrasFiles.addEventListener("change", () => {
@@ -562,15 +608,30 @@ function renderExtrasPreview(){
 }
 
 async function deleteFotoExistente(fotoId){
+  const foto = fotosExistentes.find(f => Number(f.id) === Number(fotoId));
   showMStatus("Eliminando foto…");
+
   const { error } = await supabase.from("producto_fotos").delete().eq("id", fotoId);
   if (error){
     console.error(error);
+    showToast("No se pudo eliminar la foto.", "error");
     return showMStatus("No se pudo eliminar la foto. Mirá consola.", true);
   }
-  fotosExistentes = fotosExistentes.filter(f => f.id !== fotoId);
+
+  if (foto?.url && foto.url === portadaActualUrl){
+    const upd = await supabase.from("productos").update({ portada_url: null }).eq("id", editId);
+    if (upd.error){
+      console.error(upd.error);
+      return showMStatus("La foto se quitó, pero no se pudo limpiar la portada del producto.", true);
+    }
+    portadaActualUrl = "";
+    mPortadaPreview.src = "";
+  }
+
+  fotosExistentes = fotosExistentes.filter(f => Number(f.id) !== Number(fotoId));
   renderFotosExistentes();
   showMStatus("Foto eliminada.");
+  showToast("Foto eliminada.", "success");
 }
 
 function renderFotosExistentes(){
@@ -593,7 +654,14 @@ function renderFotosExistentes(){
   mFotosExistentes.querySelectorAll("button[data-fdel]").forEach(btn => {
     btn.addEventListener("click", async () => {
       const id = Number(btn.dataset.fdel);
-      if (!confirm("¿Eliminar esta foto?")) return;
+      const ok = await confirmDialog({
+        title: "Eliminar foto",
+        message: "Esta foto se va a quitar del producto.",
+        confirmText: "Eliminar foto",
+        cancelText: "Cancelar",
+        danger: true,
+      });
+      if (!ok) return;
       await deleteFotoExistente(id);
     });
   });
@@ -664,7 +732,7 @@ async function saveEdit(){
     showMStatus("Guardando cambios…");
 
     // 1) Portada: si subieron nueva, sube y actualiza portada_url
-    let portadaFinalUrl = portadaActualUrl;
+    let portadaFinalUrl = portadaRemove ? "" : portadaActualUrl;
     if (portadaFile){
       showMStatus("Subiendo nueva portada…");
       portadaFinalUrl = await uploadImage(portadaFile, editId, "portada", 0);
@@ -685,9 +753,19 @@ async function saveEdit(){
 
     if (e1) throw e1;
 
+    if (portadaRemove && portadaOriginalToRemove){
+      const { error: ePortadaFoto } = await supabase
+        .from("producto_fotos")
+        .delete()
+        .eq("producto_id", editId)
+        .eq("url", portadaOriginalToRemove);
+      if (ePortadaFoto) console.warn("No se pudo borrar la portada desde producto_fotos:", ePortadaFoto);
+    }
+
     // 3) Categorías (multi)
     showMStatus("Actualizando categorías…");
-    await supabase.from("producto_categorias").delete().eq("producto_id", editId);
+    const delCats = await supabase.from("producto_categorias").delete().eq("producto_id", editId);
+    if (delCats.error) throw delCats.error;
 
     const catsIds = Array.from(selectedCatIds);
     if (catsIds.length){
@@ -698,7 +776,8 @@ async function saveEdit(){
 
     // 4) Talles
     showMStatus("Actualizando talles…");
-    await supabase.from("producto_talles").delete().eq("producto_id", editId);
+    const delTalles = await supabase.from("producto_talles").delete().eq("producto_id", editId);
+    if (delTalles.error) throw delTalles.error;
 
     if (tallesEnabled){
       const tList = Array.from(selectedTalles).map(t => String(t).trim()).filter(Boolean);
@@ -729,10 +808,12 @@ async function saveEdit(){
     // 6) recargar todo para refrescar cache y fotos
     await load();
     showMStatus("Listo.");
+    showToast("Producto guardado correctamente.", "success");
     closeOverlay();
 
   }catch(e){
     console.error(e);
+    showToast("No se pudo guardar el producto.", "error");
     showMStatus(`Error: ${e?.message || "No se pudo guardar"}`, true);
   }
 }

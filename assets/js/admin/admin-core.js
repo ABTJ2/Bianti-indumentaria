@@ -42,15 +42,28 @@ export async function injectSidebar() {
 export function initSidebar() {
   const pageAliases = {
     "nuevo-producto.html": "productos.html",
+    "editar-producto.html": "productos.html",
+    "importar-productos.html": "importar-productos.html",
   };
-  const rawPage = location.pathname.split("/").pop() || "dashboard.html";
+
+  const rawPage = (location.pathname.split("/").pop() || "dashboard.html").toLowerCase();
   const currentPage = pageAliases[rawPage] || rawPage;
+
+  let activated = false;
   document.querySelectorAll(".sideLink").forEach((link) => {
-    const page = link.dataset.page || link.getAttribute("href")?.split("/").pop();
-    const isActive = page === currentPage;
+    const hrefPage = (link.getAttribute("href") || "").split("/").pop().split(/[?#]/)[0].toLowerCase();
+    const dataPage = (link.dataset.page || hrefPage || "").toLowerCase();
+    const page = pageAliases[dataPage] || dataPage;
+    const isActive = !activated && page === currentPage;
+
     link.classList.toggle("active", isActive);
-    if (isActive) link.setAttribute("aria-current", "page");
-    else link.removeAttribute("aria-current");
+    link.classList.toggle("is-active", isActive);
+    if (isActive) {
+      link.setAttribute("aria-current", "page");
+      activated = true;
+    } else {
+      link.removeAttribute("aria-current");
+    }
   });
 
   const collapsed = localStorage.getItem("bianti_sidebar_collapsed") === "1";
@@ -59,10 +72,84 @@ export function initSidebar() {
   const btn = document.getElementById("btnSidebarCollapse");
   if (!btn) return;
   btn.setAttribute("aria-expanded", String(!collapsed));
-  btn.addEventListener("click", () => {
+  btn.onclick = () => {
     const next = !document.body.classList.contains("sidebarCollapsed");
     document.body.classList.toggle("sidebarCollapsed", next);
     localStorage.setItem("bianti_sidebar_collapsed", next ? "1" : "0");
     btn.setAttribute("aria-expanded", String(!next));
+  };
+}
+
+export function showToast(message, type = "info") {
+  let host = document.getElementById("adminToastHost");
+  if (!host) {
+    host = document.createElement("div");
+    host.id = "adminToastHost";
+    host.className = "toastHost";
+    document.body.appendChild(host);
+  }
+
+  const toast = document.createElement("div");
+  toast.className = `adminToast ${type}`;
+  toast.textContent = message;
+  host.appendChild(toast);
+
+  window.setTimeout(() => {
+    toast.classList.add("leaving");
+    window.setTimeout(() => toast.remove(), 220);
+  }, 2800);
+}
+
+export function confirmDialog({
+  title = "Confirmar acción",
+  message = "¿Querés continuar?",
+  confirmText = "Confirmar",
+  cancelText = "Cancelar",
+  danger = false,
+} = {}) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement("div");
+    overlay.className = "modalOverlay systemModalOverlay";
+    overlay.setAttribute("aria-hidden", "false");
+
+    overlay.innerHTML = `
+      <div class="modal systemModal" role="dialog" aria-modal="true">
+        <div class="systemModalIcon ${danger ? "danger" : ""}">${danger ? "!" : "i"}</div>
+        <h3>${escapeHtml(title)}</h3>
+        <p>${escapeHtml(message)}</p>
+        <div class="row systemModalActions">
+          <button class="btn" type="button" data-cancel>${escapeHtml(cancelText)}</button>
+          <button class="btn ${danger ? "danger" : "primary"}" type="button" data-confirm>${escapeHtml(confirmText)}</button>
+        </div>
+      </div>
+    `;
+
+    const close = (value) => {
+      overlay.remove();
+      document.removeEventListener("keydown", onKey);
+      resolve(value);
+    };
+    const onKey = (event) => {
+      if (event.key === "Escape") close(false);
+      if (event.key === "Enter") close(true);
+    };
+
+    overlay.addEventListener("click", (event) => {
+      if (event.target === overlay || event.target.closest("[data-cancel]")) close(false);
+      if (event.target.closest("[data-confirm]")) close(true);
+    });
+    document.addEventListener("keydown", onKey);
+    document.body.appendChild(overlay);
+    overlay.querySelector("[data-confirm]")?.focus();
   });
+}
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (ch) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "\"": "&quot;",
+    "'": "&#039;",
+  }[ch]));
 }

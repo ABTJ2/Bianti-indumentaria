@@ -1,3 +1,5 @@
+import { showToast } from "./admin-core.js";
+
 const supabase = window.supabaseClient;
 const STORAGE_BUCKET = "productos";
 
@@ -25,7 +27,11 @@ let csvName = "";
 let categoriasCache = [];
 let lastErrorReport = [];
 
-const IMAGE_COLUMNS = ["imagen", "foto", "archivo", "nombre_imagen", "imagen_url"];
+const IMAGE_COLUMNS = [
+  "imagen", "imagenes", "foto", "fotos", "archivo", "archivo_imagen",
+  "nombre_imagen", "imagen_url", "portada", "foto_portada", "imagen_principal",
+  "filename", "file", "image", "image_name"
+];
 
 function setStatus(message, type = "") {
   statusEl.textContent = message || "";
@@ -99,20 +105,79 @@ function normalizeRow(raw) {
 }
 
 function imageKey(path) {
-  return String(path || "").replace(/\\/g, "/").split("/").pop().split(/[?#]/)[0].trim().toLowerCase();
+  return String(path || "")
+    .replace(/\\/g, "/")
+    .split("/")
+    .pop()
+    .split(/[?#]/)[0]
+    .trim()
+    .toLowerCase();
 }
 
-function findImage(name) {
-  const key = imageKey(name);
-  const found = key ? imageFiles.get(key) || null : null;
-  console.log("[BIANTI import] Resultado búsqueda imagen", { imagenCsv: name, clave: key, encontrada: found?.name || null });
-  return found;
+function normalizeImageToken(value) {
+  let text = String(value || "").trim();
+  try { text = decodeURIComponent(text); } catch {}
+  text = imageKey(text) || text;
+  text = text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\.[a-z0-9]{2,5}$/i, "")
+    .replace(/[_\s]+/g, "-")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+  return text;
+}
+
+function imageLookupKeys(value) {
+  const raw = imageKey(value);
+  const normalized = normalizeImageToken(value);
+  const noExt = raw.replace(/\.[a-z0-9]{2,5}$/i, "");
+  return Array.from(new Set([raw, noExt, normalized].filter(Boolean)));
+}
+
+function addImageToIndex(entry) {
+  imageLookupKeys(entry.name).forEach((key) => {
+    if (key && !imageFiles.has(key)) imageFiles.set(key, entry);
+  });
+}
+
+function findImage(name, fallbackTitle = "") {
+  const candidates = [
+    ...imageLookupKeys(name),
+    ...imageLookupKeys(String(name || "").split(/[;,|]/)[0]),
+    ...imageLookupKeys(fallbackTitle),
+  ].filter(Boolean);
+
+  for (const key of candidates) {
+    const found = imageFiles.get(key);
+    if (found) {
+      console.log("[BIANTI import] Imagen encontrada", { imagenCsv: name, titulo: fallbackTitle, clave: key, encontrada: found.name });
+      return found;
+    }
+  }
+
+  // Fallback flexible: sirve cuando el CSV dice "botella termica" y el archivo viene como "botella-termica-01.jpg".
+  const normalizedCandidates = candidates.map(normalizeImageToken).filter((x) => x.length >= 4);
+  const entries = Array.from(new Set(imageFiles.values()));
+  for (const entry of entries) {
+    const entryToken = normalizeImageToken(entry.name);
+    const match = normalizedCandidates.find((key) => entryToken === key || entryToken.includes(key) || key.includes(entryToken));
+    if (match) {
+      console.log("[BIANTI import] Imagen encontrada por coincidencia flexible", { imagenCsv: name, titulo: fallbackTitle, clave: match, encontrada: entry.name });
+      return entry;
+    }
+  }
+
+  console.log("[BIANTI import] Imagen no encontrada", { imagenCsv: name, titulo: fallbackTitle, clavesProbadas: candidates });
+  return null;
 }
 
 function getImageName(row) {
   for (const col of IMAGE_COLUMNS) {
     const value = clean(row[col]);
-    if (value) return value;
+    if (value) return value.split(/[;,|]/).map((x) => x.trim()).filter(Boolean)[0] || value;
   }
   return "";
 }
@@ -219,7 +284,7 @@ function validateAndBuildRows(rows) {
     const talles = splitTalles(row.talles);
     const imagen = getImageName(row);
     console.log("[BIANTI import] Imagen leída desde fila CSV", { fila: index + 2, imagen });
-    const imageFile = findImage(imagen);
+    const imageFile = findImage(imagen, titulo);
     const errors = [];
     const warnings = [];
     const omitted = !titulo && !descripcion && !categoria && !imagen && !clean(row.precio_venta) && !clean(row.precio) && !clean(row.precio_costo);
@@ -330,12 +395,11 @@ async function readZip(file) {
 
   imageFiles = new Map();
   entries.forEach((entry) => {
-    if (/\.(jpe?g|png|webp)$/i.test(entry.name.trim())) {
-      const key = imageKey(entry.name);
-      if (key && !imageFiles.has(key)) imageFiles.set(key, entry);
-    }
+    const name = entry.name.trim();
+    if (/(__MACOSX|\.DS_Store)/i.test(name)) return;
+    if (/\.(jpe?g|png|webp)$/i.test(name)) addImageToIndex(entry);
   });
-  console.log("[BIANTI import] Imágenes detectadas", Array.from(imageFiles.values()).map((entry) => entry.name));
+  console.log("[BIANTI import] Imágenes detectadas", Array.from(new Set(imageFiles.values())).map((entry) => entry.name));
 
   csvName = csvEntry.name;
   const csvText = await csvEntry.async("string");
@@ -520,6 +584,7 @@ async function importar() {
     console.log("[BIANTI import] Resumen final", { ...stats, errores });
     renderResult(stats, errores);
     setStatus("Importación finalizada.", errores.length ? "" : "success");
+    showToast(errores.length ? "Importación finalizada con avisos." : "Importación finalizada correctamente.", errores.length ? "info" : "success");
   } catch (error) {
     console.error(error);
     setStatus(`Error: ${error.message || "No se pudo importar."}`, "error");
