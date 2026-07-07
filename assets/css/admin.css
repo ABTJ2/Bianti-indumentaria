@@ -2685,3 +2685,608 @@ body:not(.authBianti) .sideLink.is-active .side-icon{
   body:not(.authBianti) .grid2,
   body:not(.authBianti) .two{grid-template-columns:1fr !important;}
 }
+
+
+/* =========================================================
+   AJUSTES FINALES 2 - SIDEBAR / FILTROS / NOTEBOOKS
+========================================================= */
+body:not(.authBianti) .layout,
+body:not(.authBianti) .adminLayout{
+  min-height: 100vh;
+}
+
+body:not(.authBianti) #sidebar-host,
+body:not(.authBianti) #sidebarHost{
+  display: flex;
+  align-items: stretch;
+}
+
+body:not(.authBianti) .sidebar{
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px;
+  overflow: hidden;
+}
+
+body:not(.authBianti) .sideBrand{
+  position: relative;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center;
+  gap: 10px;
+  padding: 6px 0 12px !important;
+}
+
+body:not(.authBianti) .sideLogoWrap{
+  width: 76px !important;
+  height: 76px !important;
+  margin: 0 auto;
+  flex: 0 0 auto;
+}
+
+body:not(.authBianti) .sideCollapse{
+  position: absolute !important;
+  top: 6px;
+  right: -6px;
+  width: 30px;
+  height: 30px;
+  margin: 0 !important;
+}
+
+body:not(.authBianti) .sideBrandName{
+  font-size: 14px !important;
+  letter-spacing: .18em !important;
+}
+
+body:not(.authBianti) .sideBrandSub{
+  font-size: 10px !important;
+  letter-spacing: .28em !important;
+}
+
+body:not(.authBianti) .sideBody{
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+body:not(.authBianti) .sideNav,
+body:not(.authBianti) .sideGroup{
+  display: grid;
+  gap: 8px;
+}
+
+body:not(.authBianti) .sideLink{
+  min-height: 42px !important;
+  border-radius: 12px !important;
+}
+
+body:not(.authBianti) .sideFooter{
+  margin-top: auto;
+  padding-top: 10px !important;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+
+body:not(.authBianti) .btnLogout{
+  width: 100% !important;
+  justify-content: center !important;
+}
+
+body:not(.authBianti) .sideVersion{
+  margin-top: 8px;
+  text-align: center;
+  font-size: 10px;
+}
+
+body.sidebarCollapsed:not(.authBianti) .sideBrand{
+  padding-bottom: 8px !important;
+}
+
+body.sidebarCollapsed:not(.authBianti) .sideCollapse{
+  right: -10px;
+  top: 4px;
+}
+
+body.sidebarCollapsed:not(.authBianti) .sideLogoWrap{
+  width: 46px !important;
+  height: 46px !important;
+}
+
+body:not(.authBianti) .toolbarProducts{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+body:not(.authBianti) .toolbarProducts .left{
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
+}
+
+body:not(.authBianti) .toolbarSearch{
+  min-width: min(320px, 100%) !important;
+  flex: 1 1 240px;
+}
+
+body:not(.authBianti) .toolbarSelect{
+  min-width: 180px;
+  padding-right: 34px !important;
+}
+
+body:not(.authBianti) .pillCheck{
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px;
+}
+
+body:not(.authBianti) .pillCheck input{
+  margin: 0;
+}
+
+@media (max-width: 1366px){
+  body:not(.authBianti) .sideLogoWrap{
+    width: 66px !important;
+    height: 66px !important;
+  }
+}
+
+@media (max-width: 1180px){
+  body:not(.authBianti) .toolbarSearch,
+  body:not(.authBianti) .toolbarSelect,
+  body:not(.authBianti) .pillCheck{
+    min-width: 100% !important;
+    width: 100% !important;
+  }
+}
+
+
+/* =========================================================
+   MOBILE REAL V3 - BIANTI ADMIN
+   En celular el contenido usa toda la pantalla y la navegación
+   pasa abajo para no comer ancho.
+========================================================= */
+@media (max-width: 720px){
+  html, body{
+    width:100%;
+    max-width:100%;
+    overflow-x:hidden !important;
+  }
+
+  body:not(.authBianti){
+    --sidebarW:0px !important;
+    --sidebarCollapsedW:0px !important;
+    background:#f5f4f7 !important;
+    font-size:13px !important;
+  }
+
+  body:not(.authBianti) .layout,
+  body:not(.authBianti) .adminLayout{
+    display:block !important;
+    min-width:0 !important;
+    width:100% !important;
+  }
+
+  body:not(.authBianti) #sidebar-host,
+  body:not(.authBianti) #sidebarHost{
+    width:0 !important;
+    min-width:0 !important;
+    height:0 !important;
+    flex:0 0 0 !important;
+  }
+
+  body:not(.authBianti) .sidebar{
+    position:fixed !important;
+    left:0 !important;
+    right:0 !important;
+    bottom:0 !important;
+    top:auto !important;
+    z-index:9990 !important;
+    width:100vw !important;
+    height:70px !important;
+    padding:7px 8px calc(7px + env(safe-area-inset-bottom)) !important;
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:center !important;
+    gap:0 !important;
+    background:linear-gradient(180deg, #111015, #030304) !important;
+    border-top:1px solid rgba(255,255,255,.12) !important;
+    border-right:0 !important;
+    box-shadow:0 -14px 34px rgba(0,0,0,.28) !important;
+    overflow:hidden !important;
+  }
+
+  body:not(.authBianti) .sideBrand,
+  body:not(.authBianti) .sideFooter,
+  body:not(.authBianti) .sideGroupTitle,
+  body:not(.authBianti) .sideCollapse,
+  body:not(.authBianti) .sideBrandTxt,
+  body:not(.authBianti) .sideVersion,
+  body:not(.authBianti) .btnLogout{
+    display:none !important;
+  }
+
+  body:not(.authBianti) .sideBody{
+    width:100% !important;
+    height:100% !important;
+    flex:1 1 auto !important;
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
+    padding:0 !important;
+    margin:0 !important;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  body:not(.authBianti) .sideBody::-webkit-scrollbar{height:0 !important; width:0 !important;}
+  body:not(.authBianti) .sideNav,
+  body:not(.authBianti) .sideGroup{
+    height:100% !important;
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:center !important;
+    gap:7px !important;
+    padding:0 !important;
+    margin:0 !important;
+  }
+
+  body:not(.authBianti) .sideLink,
+  body.sidebarCollapsed:not(.authBianti) .sideLink{
+    flex:0 0 54px !important;
+    width:54px !important;
+    height:54px !important;
+    min-height:54px !important;
+    padding:0 !important;
+    margin:0 !important;
+    border-radius:16px !important;
+    display:flex !important;
+    justify-content:center !important;
+    align-items:center !important;
+    background:rgba(255,255,255,.045) !important;
+    border:1px solid rgba(255,255,255,.08) !important;
+    color:#fff !important;
+  }
+
+  body:not(.authBianti) .sideLink span:not(.side-icon){display:none !important;}
+  body:not(.authBianti) .sideLink .side-icon{
+    width:22px !important;
+    height:22px !important;
+    display:grid !important;
+    place-items:center !important;
+  }
+  body:not(.authBianti) .sideLink .side-icon svg{
+    width:21px !important;
+    height:21px !important;
+  }
+
+  body:not(.authBianti) .sideLink.active,
+  body:not(.authBianti) .sideLink.is-active{
+    background:linear-gradient(135deg, #7c3aed, #a855f7) !important;
+    border-color:rgba(255,255,255,.25) !important;
+    box-shadow:0 10px 22px rgba(124,58,237,.34) !important;
+  }
+
+  body:not(.authBianti) .main,
+  body:not(.authBianti) main.main,
+  body:not(.authBianti) .content,
+  body:not(.authBianti) .page-wrap{
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    min-height:100vh !important;
+    padding:16px 12px 96px !important;
+    margin:0 !important;
+    background:#f5f4f7 !important;
+  }
+
+  body:not(.authBianti) .main::before,
+  body:not(.authBianti) main.main::before,
+  body:not(.authBianti) .content::before,
+  body:not(.authBianti) .page-wrap::before{
+    display:none !important;
+  }
+
+  body:not(.authBianti) .adminTopbar{
+    position:static !important;
+    height:auto !important;
+    min-height:46px !important;
+    margin:-16px -12px 14px !important;
+    padding:10px 12px !important;
+    display:flex !important;
+    justify-content:flex-end !important;
+    gap:10px !important;
+    background:linear-gradient(180deg, #030304, #09090b) !important;
+    color:#fff !important;
+  }
+
+  body:not(.authBianti) .topBell{width:22px !important;height:22px !important;font-size:11px !important;}
+  body:not(.authBianti) .topUser span{font-size:12px !important;}
+  body:not(.authBianti) .topUser small{font-size:10px !important;}
+
+  body:not(.authBianti) .head,
+  body:not(.authBianti) .pageHead,
+  body:not(.authBianti) .headerRow{
+    display:block !important;
+    margin:0 0 12px !important;
+  }
+
+  body:not(.authBianti) .head h1,
+  body:not(.authBianti) h1,
+  body:not(.authBianti) .h1,
+  body:not(.authBianti) .page-title{
+    font-size:24px !important;
+    line-height:1.08 !important;
+    letter-spacing:-.02em !important;
+    margin:0 0 6px !important;
+  }
+
+  body:not(.authBianti) .muted,
+  body:not(.authBianti) .muted2,
+  body:not(.authBianti) .help,
+  body:not(.authBianti) .tiny,
+  body:not(.authBianti) .p{
+    font-size:12px !important;
+    line-height:1.35 !important;
+  }
+
+  body:not(.authBianti) .panel,
+  body:not(.authBianti) .card,
+  body:not(.authBianti) .box{
+    width:100% !important;
+    max-width:100% !important;
+    padding:12px !important;
+    border-radius:14px !important;
+    box-shadow:0 12px 28px rgba(32,28,40,.08) !important;
+  }
+
+  body:not(.authBianti) .row.actions,
+  body:not(.authBianti) .actions,
+  body:not(.authBianti) .actionsRow{
+    width:100% !important;
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:8px !important;
+  }
+
+  body:not(.authBianti) .btn,
+  body:not(.authBianti) a.btn,
+  body:not(.authBianti) button.btn{
+    width:100% !important;
+    min-width:0 !important;
+    height:40px !important;
+    padding:0 12px !important;
+    font-size:12px !important;
+    border-radius:11px !important;
+  }
+
+  body:not(.authBianti) .toolbar,
+  body:not(.authBianti) .toolbarProducts,
+  body:not(.authBianti) .toolbar .left,
+  body:not(.authBianti) .toolbarProducts .left{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    width:100% !important;
+    gap:8px !important;
+    align-items:stretch !important;
+  }
+
+  body:not(.authBianti) .toolbar > *,
+  body:not(.authBianti) .toolbar .left > *,
+  body:not(.authBianti) .toolbarProducts .left > *,
+  body:not(.authBianti) .pill,
+  body:not(.authBianti) .toolbarSearch,
+  body:not(.authBianti) .toolbarSelect,
+  body:not(.authBianti) .pillCheck{
+    width:100% !important;
+    min-width:0 !important;
+  }
+
+  body:not(.authBianti) input:not([type="checkbox"]):not([type="radio"]),
+  body:not(.authBianti) select,
+  body:not(.authBianti) textarea,
+  body:not(.authBianti) .pill{
+    min-height:40px !important;
+    font-size:12px !important;
+  }
+
+  body:not(.authBianti) .cards,
+  body:not(.authBianti) .cards.dashboardKpis,
+  body:not(.authBianti) .statsGrid,
+  body:not(.authBianti) .gridKpi,
+  body:not(.authBianti) .grid2,
+  body:not(.authBianti) .formGrid,
+  body:not(.authBianti) .formgrid,
+  body:not(.authBianti) .two,
+  body:not(.authBianti) .dashboardGrid,
+  body:not(.authBianti) .dashboardBottom,
+  body:not(.authBianti) .quickGrid{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:10px !important;
+  }
+
+  body:not(.authBianti) .dashboardKpis .card,
+  body:not(.authBianti) .cards.dashboardKpis > .card,
+  body:not(.authBianti) .cards .kpi,
+  body:not(.authBianti) .kpi,
+  body:not(.authBianti) .stat{
+    min-height:auto !important;
+    padding:14px !important;
+    display:grid !important;
+    grid-template-columns:44px 1fr !important;
+    gap:12px !important;
+    align-items:center !important;
+  }
+
+  body:not(.authBianti) .dashboardKpis .card > svg{
+    width:42px !important;
+    height:42px !important;
+    padding:11px !important;
+    border-radius:12px !important;
+  }
+
+  body:not(.authBianti) .dashboardKpis .card .n,
+  body:not(.authBianti) .cards .kpi .v,
+  body:not(.authBianti) .kpi .v,
+  body:not(.authBianti) .stat .num{
+    font-size:22px !important;
+    line-height:1.05 !important;
+  }
+
+  body:not(.authBianti) .dashboardKpis .card .l,
+  body:not(.authBianti) .cards .kpi .t,
+  body:not(.authBianti) .kpi .t,
+  body:not(.authBianti) .stat .lbl{
+    font-size:11px !important;
+    line-height:1.2 !important;
+  }
+
+  body:not(.authBianti) .salesFlow,
+  body:not(.authBianti) .guidePanel{display:none !important;}
+
+  body:not(.authBianti) .quickAction{
+    min-height:auto !important;
+    padding:12px !important;
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:center !important;
+    gap:10px !important;
+  }
+
+  body:not(.authBianti) .latestList div{
+    grid-template-columns:34px 1fr !important;
+    gap:8px !important;
+  }
+  body:not(.authBianti) .latestList em{grid-column:2 !important; width:max-content !important;}
+
+  body:not(.authBianti) .drop,
+  body:not(.authBianti) .uploadBox,
+  body:not(.authBianti) .msg{
+    width:100% !important;
+  }
+
+  body:not(.authBianti) input[type="file"]{
+    width:100% !important;
+    max-width:100% !important;
+    font-size:12px !important;
+  }
+
+  body:not(.authBianti) .tableWrap{
+    width:100% !important;
+    max-width:100% !important;
+    overflow:auto !important;
+    -webkit-overflow-scrolling:touch;
+    max-height:none !important;
+    border-radius:12px !important;
+  }
+  body:not(.authBianti) table,
+  body:not(.authBianti) .table{
+    min-width:720px !important;
+    font-size:11px !important;
+  }
+  body:not(.authBianti) table th,
+  body:not(.authBianti) table td,
+  body:not(.authBianti) .table th,
+  body:not(.authBianti) .table td{
+    padding:8px !important;
+  }
+
+  body:not(.authBianti) .chartWrap,
+  body:not(.authBianti) .chartBox{
+    width:100% !important;
+    max-width:100% !important;
+    overflow:hidden !important;
+  }
+  body:not(.authBianti) .chartBox{
+    height:240px !important;
+  }
+
+  body:not(.authBianti) .modalOverlay{
+    padding:0 !important;
+    align-items:stretch !important;
+    justify-content:stretch !important;
+  }
+  body:not(.authBianti) .modal{
+    width:100vw !important;
+    max-width:100vw !important;
+    height:100vh !important;
+    max-height:100vh !important;
+    border-radius:0 !important;
+    padding:14px 12px 92px !important;
+    overflow:auto !important;
+  }
+}
+
+
+/* =========================================================
+   V4 FILTROS + CHIPS PRODUCTOS
+========================================================= */
+body:not(.authBianti) .toolbarRight{display:flex;align-items:center;gap:10px;flex:0 0 auto;}
+body:not(.authBianti) .thumbProducto{width:56px !important;height:56px !important;border-radius:12px !important;object-fit:cover !important;border:1px solid #e7dff1 !important;background:#fff !important;}
+body:not(.authBianti) .thumbPlaceholder{display:grid !important;place-items:center !important;color:#8b8693 !important;font-size:10px !important;font-weight:800 !important;background:#f3eef7 !important;}
+body:not(.authBianti) .chipCategory{background:linear-gradient(135deg, #8f57bf, #6f3c8d) !important;border-color:#744293 !important;color:#fff !important;}
+body:not(.authBianti) .chipTalle{background:#f7f0fc !important;border-color:#e6d6f3 !important;color:#6f3c8d !important;}
+body:not(.authBianti) .chipState.isVisible{background:#e9f8ef !important;border-color:#b9e7c7 !important;color:#177a45 !important;}
+body:not(.authBianti) .chipState.isHidden{background:#fff3e8 !important;border-color:#ffd7af !important;color:#a85b06 !important;}
+body:not(.authBianti) .chipState.isAvailable{background:#eef5ff !important;border-color:#c7dbff !important;color:#315ed8 !important;}
+body:not(.authBianti) .chipState.isUnavailable{background:#fceced !important;border-color:#f6caca !important;color:#b12a2a !important;}
+body:not(.authBianti) .actionsProducts{display:flex !important;flex-wrap:wrap !important;justify-content:flex-end !important;gap:6px !important;}
+body:not(.authBianti) .actionsProducts .btn{width:auto !important;}
+body:not(.authBianti) .tableWrap .table td:nth-child(1){width:76px;}
+body:not(.authBianti) .tableWrap .table td:nth-child(4),body:not(.authBianti) .tableWrap .table td:nth-child(5){min-width:180px;}
+@media (max-width: 980px){body:not(.authBianti) .toolbarRight{width:100%;justify-content:space-between;}}
+@media (max-width: 720px){body:not(.authBianti) .toolbarRight{display:grid !important;grid-template-columns:1fr !important;width:100% !important;}body:not(.authBianti) .table,body:not(.authBianti) table{min-width:930px !important;}}
+
+
+/* =========================================================
+   V5 ADMIN - FILTROS Y ESTADOS BIEN VISIBLES
+========================================================= */
+body:not(.authBianti) .toolbarProducts .pill,
+body:not(.authBianti) .toolbarProducts select,
+body:not(.authBianti) .toolbarProducts input{
+  background:#fff !important;
+  color:#22172b !important;
+  border:2px solid #ded2e8 !important;
+  opacity:1 !important;
+}
+body:not(.authBianti) .toolbarProducts .pill:focus,
+body:not(.authBianti) .toolbarProducts select:focus,
+body:not(.authBianti) .toolbarProducts input:focus{
+  border-color:#8f57bf !important;
+  box-shadow:0 0 0 4px rgba(143,87,191,.12) !important;
+}
+body:not(.authBianti) .toolbarRight .btn,
+body:not(.authBianti) #btnLimpiarFiltros{
+  background:#6f3c8d !important;
+  color:#fff !important;
+  border-color:#6f3c8d !important;
+}
+body:not(.authBianti) .tag-success,
+body:not(.authBianti) .tag.tag-success{
+  background:#dff6e7 !important;
+  color:#096b36 !important;
+  border:1px solid #b6e5c5 !important;
+  font-weight:900 !important;
+}
+body:not(.authBianti) .tag-warning,
+body:not(.authBianti) .tag.tag-warning{
+  background:#fff3d8 !important;
+  color:#9a5a00 !important;
+  border:1px solid #ffd98e !important;
+  font-weight:900 !important;
+}
+body:not(.authBianti) .tag-info,
+body:not(.authBianti) .tag.tag-info{
+  background:#efe4ff !important;
+  color:#5f247f !important;
+  border:1px solid #d8c0f0 !important;
+  font-weight:900 !important;
+}
+body:not(.authBianti) .chipCategory{background:#6f3c8d !important;color:#fff !important;border-color:#6f3c8d !important;}
+body:not(.authBianti) .chipTalle{background:#efe4ff !important;color:#5f247f !important;border-color:#d8c0f0 !important;}
