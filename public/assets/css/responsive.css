@@ -36,6 +36,9 @@
   .product-modal__image { min-height: 260px; max-height: 360px; }
 }
 @media (max-width: 620px) {
+  html, body { max-width: 100%; overflow-x: hidden; }
+  .catalog-container, .products-grid, .product-card, .product-info, .footer-public, .panel { min-width: 0; }
+  .product-card, .category-card, .stat-line, .bar-row { overflow-wrap: anywhere; }
   .admin-main { padding-inline: 12px; }
   .admin-top { margin-inline: -12px; }
   .admin-user strong { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

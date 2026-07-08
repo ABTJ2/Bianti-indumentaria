@@ -3,7 +3,7 @@ import { showToast } from "./admin-core.js";
 const supabase = window.supabaseClient;
 const STORAGE_BUCKET = "productos";
 const IMPORT_DEBUG = false;
-function debugLog(...args) { if (IMPORT_DEBUG) debugLog(...args); }
+function debugLog(...args) { if (IMPORT_DEBUG) console.debug(...args); }
 
 const zipFile = document.getElementById("zipFile");
 const btnImportar = document.getElementById("btnImportar");
