@@ -21,7 +21,8 @@
   const modalState = $('#modalProductState');
   const modalWhatsapp = $('#modalProductWhatsapp');
 
-  const state = { products: [], byId: new Map(), currentCategory: '', currentTalle: '', ready: false };
+  const state = { results: [], byId: new Map(), currentCategory: '', currentTalle: '', ready: true, loading: false };
+  let searchTimer = null;
 
   function api(path) {
     const base = window.BIANTI_BASE || '/';
@@ -42,12 +43,13 @@
     return { ...product, id, precio_final: price, portada: product.portada || api('assets/img/logo.png') };
   }
 
-  function addProducts(products) {
-    products.map(normalizeProduct).forEach((product) => {
+  function addProducts(products, replaceResults = false) {
+    const normalized = products.map(normalizeProduct).filter((product) => product.id);
+    normalized.forEach((product) => {
       if (!product.id) return;
       state.byId.set(product.id, product);
     });
-    state.products = Array.from(state.byId.values());
+    if (replaceResults) state.results = normalized;
   }
 
   function loadStaticProducts() {
@@ -69,8 +71,27 @@
         body: JSON.stringify({ type, payload })
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json().catch(() => ({}));
+      if (data.warning) console.warn(`[BIANTI catálogo] ${data.warning}`);
     } catch (error) {
       console.warn(`[BIANTI catálogo] No se pudo registrar evento ${type}.`, error);
+    }
+  }
+
+  async function createPedido(product) {
+    if (!product?.id) return;
+    const price = money(product.precio_final ?? product.precio_venta ?? product.precio ?? 0);
+    const mensaje = `Consulta WhatsApp desde catálogo: ${product.titulo || 'Producto'} - Precio: ${price}`;
+    try {
+      const response = await fetch(api('api/pedidos'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ producto_id: product.id, mensaje })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.ok) throw new Error(data.error || `HTTP ${response.status}`);
+    } catch (error) {
+      console.warn('[BIANTI catálogo] WhatsApp abrió, pero no se pudo crear el pedido en Supabase.', error);
     }
   }
 
@@ -124,6 +145,10 @@
     return true;
   }
 
+  function hasActiveQuery() {
+    return Boolean((search?.value || '').trim() || state.currentCategory || state.currentTalle);
+  }
+
   function sortProducts(products) {
     const mode = sort?.value || 'recientes';
     return [...products].sort((a, b) => {
@@ -139,27 +164,54 @@
 
   function renderProducts() {
     if (!productsEl) return;
-    const filtered = sortProducts(state.products.filter(matches));
+    if (!hasActiveQuery()) {
+      productsEl.innerHTML = '';
+      if (emptyEl) {
+        emptyEl.hidden = false;
+        emptyEl.textContent = 'Elegí una categoría o buscá por nombre para ver productos.';
+      }
+      if (resultsTitle) resultsTitle.textContent = 'Productos';
+      if (resultsCount) resultsCount.textContent = '';
+      return;
+    }
+    const filtered = sortProducts(state.results.filter(matches));
     productsEl.innerHTML = filtered.map(productCard).join('');
-    if (emptyEl) emptyEl.hidden = filtered.length > 0;
+    if (emptyEl) {
+      emptyEl.hidden = filtered.length > 0 || state.loading;
+      emptyEl.textContent = state.loading ? 'Cargando productos...' : 'No encontramos productos con esos filtros.';
+    }
     if (resultsTitle) resultsTitle.textContent = state.currentCategory || (search?.value || '').trim() ? 'Productos encontrados' : 'Productos';
     if (resultsCount) resultsCount.textContent = filtered.length ? `${filtered.length} producto${filtered.length === 1 ? '' : 's'}` : '';
   }
 
   async function fetchProducts() {
+    if (!hasActiveQuery()) {
+      state.results = [];
+      renderProducts();
+      return;
+    }
+    state.loading = true;
+    renderProducts();
     try {
       const params = new URLSearchParams();
+      const query = (search?.value || '').trim();
+      if (query) params.set('q', query);
+      if (state.currentCategory) params.set('categoria', state.currentCategory);
+      if (state.currentTalle) params.set('talle', state.currentTalle);
+      if (sort?.value) params.set('sort', sort.value);
       const response = await fetch(api(`api/catalogo/productos?${params.toString()}`));
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
       if (!data.ok) throw new Error(data.error || 'Respuesta inválida');
-      addProducts(Array.isArray(data.productos) ? data.productos : []);
+      addProducts(Array.isArray(data.productos) ? data.productos : [], true);
       state.ready = true;
+      state.loading = false;
       updateTalleOptions();
       renderProducts();
     } catch (error) {
       console.error('[BIANTI catálogo] Error cargando productos.', error);
       state.ready = true;
+      state.loading = false;
       renderProducts();
     }
   }
@@ -222,7 +274,10 @@
     if (!href || href === '#') return;
     const opened = window.open(href, '_blank', 'noopener');
     if (opened) opened.opener = null;
-    if (product) logEvent('click_whatsapp', { producto_id: product.id, titulo: product.titulo || '', precio: product.precio_final ?? product.precio_venta ?? product.precio ?? 0 });
+    if (product) {
+      logEvent('click_whatsapp', { producto_id: product.id, titulo: product.titulo || '', precio: product.precio_final ?? product.precio_venta ?? product.precio ?? 0 });
+      createPedido(product);
+    }
   }
 
   document.addEventListener('click', (event) => {
@@ -248,7 +303,7 @@
       state.currentCategory = String(category.dataset.category || '');
       if (filterCategory) filterCategory.value = state.currentCategory;
       updateTalleOptions();
-      renderProducts();
+      fetchProducts();
       productsEl?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       logEvent('view_category', { categoria_id: state.currentCategory });
       return;
@@ -259,21 +314,26 @@
   });
 
   btnFilters?.addEventListener('click', openFilters);
-  $('#applyFilters')?.addEventListener('click', () => { closeFilters(); renderProducts(); });
+  $('#applyFilters')?.addEventListener('click', () => { closeFilters(); fetchProducts(); });
   $('#clearFilters')?.addEventListener('click', () => {
     state.currentCategory = '';
     state.currentTalle = '';
     if (filterCategory) filterCategory.value = '';
     if (filterTalle) filterTalle.value = '';
+    if (search) search.value = '';
     if (sort) sort.value = 'recientes';
+    state.results = [];
     updateTalleOptions();
     closeFilters();
     renderProducts();
   });
-  search?.addEventListener('input', renderProducts);
+  search?.addEventListener('input', () => {
+    window.clearTimeout(searchTimer);
+    searchTimer = window.setTimeout(fetchProducts, 250);
+  });
   filterCategory?.addEventListener('change', () => { state.currentCategory = filterCategory.value; updateTalleOptions(); });
   filterTalle?.addEventListener('change', () => { state.currentTalle = filterTalle.value; });
-  sort?.addEventListener('change', renderProducts);
+  sort?.addEventListener('change', fetchProducts);
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
       closeFilters();
@@ -284,5 +344,4 @@
   loadStaticProducts();
   updateTalleOptions();
   renderProducts();
-  fetchProducts();
 })();

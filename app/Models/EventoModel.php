@@ -12,6 +12,10 @@ final class EventoModel extends BaseSupabaseModel
 
     public function log(string $type, array $payload = []): array
     {
+        $productId = $this->productIdFromTypeAndPayload($type, $payload);
+        if ($productId !== '' && !(new ProductoModel())->find((int)$productId)) {
+            return ['warning' => 'Producto inexistente. Evento no guardado.', 'skipped' => true];
+        }
         return $this->sb->insert('eventos', [
             'type' => $type,
             'payload' => $payload,
@@ -25,7 +29,7 @@ final class EventoModel extends BaseSupabaseModel
         foreach ($this->recent(3000) as $e) {
             if (($e['type'] ?? '') !== $type) continue;
             $payload = is_array($e['payload'] ?? null) ? $e['payload'] : json_decode((string)($e['payload'] ?? '{}'), true);
-            $id = (string)($payload['producto_id'] ?? $payload['id'] ?? '');
+            $id = is_array($payload) ? $this->productIdFromTypeAndPayload($type, $payload) : '';
             if ($id === '') continue;
             $counts[$id] = ($counts[$id] ?? 0) + 1;
         }
@@ -37,7 +41,16 @@ final class EventoModel extends BaseSupabaseModel
     {
         $payload = is_array($event['payload'] ?? null) ? $event['payload'] : json_decode((string)($event['payload'] ?? '{}'), true);
         if (!is_array($payload)) return '';
-        return (string)($payload['producto_id'] ?? $payload['id_producto'] ?? $payload['product_id'] ?? $payload['id'] ?? '');
+        return $this->productIdFromTypeAndPayload((string)($event['type'] ?? ''), $payload);
+    }
+
+    public function productIdFromTypeAndPayload(string $type, array $payload): string
+    {
+        foreach (['producto_id', 'id_producto', 'product_id'] as $key) {
+            if (isset($payload[$key]) && trim((string)$payload[$key]) !== '') return (string)$payload[$key];
+        }
+        if (in_array($type, ['view_product', 'click_whatsapp'], true) && isset($payload['id'])) return (string)$payload['id'];
+        return '';
     }
 
     public function productEvents(int $limit = 10000): array

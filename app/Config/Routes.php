@@ -6,6 +6,7 @@ $router->get('categoria/(:num)', 'Catalogo::categoria');
 
 $router->get('api/catalogo/productos', 'Api::productos');
 $router->post('api/eventos', 'Api::evento');
+$router->post('api/pedidos', 'Api::pedido');
 
 $router->get('admin', 'Admin\\Dashboard::index');
 $router->get('admin/login', 'Auth::login');
