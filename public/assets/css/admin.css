@@ -37,12 +37,17 @@
 .admin-table td small { display: block; margin-top: 4px; max-width: 320px; }
 .thumb { width: 64px; height: 64px; border-radius: 14px; object-fit: cover; background: #f0edf2; }
 .product-admin-cards { display: none; }
+.pedido-admin-cards { display: none; }
 .admin-product-card { background: var(--color-white); border: 1px solid var(--color-border); border-radius: 16px; padding: 12px; box-shadow: var(--shadow-soft); }
 .admin-product-card img { width: 84px; height: 84px; object-fit: cover; border-radius: 13px; background: #f0edf2; }
 .admin-product-card h3 { margin: 3px 0; font-size: 15px; color: var(--color-text); }
 .admin-product-card details { margin-top: 8px; }
 .admin-product-card summary { min-height: 36px; display: inline-flex; align-items: center; color: var(--color-primary-dark); font-weight: 800; cursor: pointer; }
 .admin-product-card details .btn, .admin-product-card details form { margin-top: 7px; }
+.pedido-admin-card { background: var(--color-white); border: 1px solid var(--color-border); border-radius: 16px; padding: 14px; box-shadow: var(--shadow-soft); }
+.pedido-admin-card h3 { margin: 4px 0 8px; font-size: 16px; color: var(--color-text); }
+.pedido-admin-card p { margin: 10px 0 0; color: var(--color-muted); }
+.pedido-admin-card summary { min-height: 36px; display: inline-flex; align-items: center; color: var(--color-primary-dark); font-weight: 800; cursor: pointer; }
 .drop { border: 1px dashed #cbb7d9; border-radius: 18px; padding: 18px; background: #fbf8fd; }
 .drop input[type="file"] { background: var(--color-white); }
 .import-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }

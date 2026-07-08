@@ -22,6 +22,18 @@ document.addEventListener('click', (e) => {
   if (copyCatalog) {
     navigator.clipboard?.writeText(copyCatalog.dataset.copyCatalog || '');
   }
+
+  const editCategory = e.target.closest('[data-edit-category]');
+  if (editCategory) {
+    const form = editCategory.closest('article')?.querySelector('.edit-cat');
+    if (form) form.hidden = false;
+  }
+
+  const closeCategory = e.target.closest('[data-close-category]');
+  if (closeCategory) {
+    const form = closeCategory.closest('.edit-cat');
+    if (form) form.hidden = true;
+  }
 });
 
 document.addEventListener('keydown', (e) => {
