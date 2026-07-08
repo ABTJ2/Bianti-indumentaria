@@ -20,7 +20,7 @@
   .filter-admin { grid-template-columns: 1fr; }
   .filter-admin input { grid-column: auto; }
   .table-responsive { display: none; }
-  .product-admin-cards { display: grid; gap: 12px; }
+  .product-admin-cards, .pedido-admin-cards { display: grid; gap: 12px; }
   .admin-product-card { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 12px; }
   .edit-grid.two, .two { grid-template-columns: 1fr; }
   .topbar-public { align-items: flex-start; flex-direction: column; padding: 14px 18px; }
@@ -32,6 +32,8 @@
   .authStage { grid-template-columns: 1fr; min-height: auto; padding-top: 26px; }
   .authHero { display: none; }
   .authFooter { grid-template-columns: 1fr; }
+  .product-modal__dialog { grid-template-columns: 1fr; }
+  .product-modal__image { min-height: 260px; max-height: 360px; }
 }
 @media (max-width: 620px) {
   .admin-main { padding-inline: 12px; }
@@ -60,4 +62,9 @@
   .footer-rights { display: grid; gap: 8px; }
   .login-box { padding: 18px; }
   .authIdentity h1 { font-size: 18px; }
+  .product-modal { padding: 10px; }
+  .product-modal__dialog { width: 100%; max-height: calc(100vh - 20px); border-radius: 18px; }
+  .product-modal__content { padding: 18px; }
+  .product-modal__content h2 { font-size: 22px; }
+  .product-modal__image { min-height: 220px; }
 }

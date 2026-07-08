@@ -24,7 +24,7 @@
     <?php foreach($destacados as $p): $cat=$p['categorias'][0]??'Sin categoría'; ?>
       <article class="product-card" data-product="<?= e($p['id']) ?>">
         <img src="<?= e($p['portada'] ?: asset_url('img/logo.png')) ?>" alt="<?= e($p['titulo'] ?? 'Producto') ?>">
-        <div class="product-info"><span class="badge-dark"><?= e($cat) ?></span><h3><?= e($p['titulo'] ?? 'Producto') ?></h3><strong><?= money_ar($p['precio_final'] ?? $p['precio_venta'] ?? $p['precio'] ?? 0) ?></strong><?php if(!empty($p['oferta_descuento'])): ?><small class="sale-note">Oferta <?= e($p['oferta_descuento']) ?>% OFF</small><?php endif; ?><div class="product-actions"><button class="btn small btn-detail" data-id="<?= e($p['id']) ?>">Ver detalle</button><a class="btn small primary" data-wa="<?= e($p['id']) ?>" href="https://wa.me/<?= e(env_value('BIANTI_WHATSAPP','')) ?>?text=<?= urlencode('Hola! Quiero consultar por '.$p['titulo']) ?>" target="_blank">Consultar</a></div></div>
+        <div class="product-info"><span class="badge-dark"><?= e($cat) ?></span><h3><?= e($p['titulo'] ?? 'Producto') ?></h3><strong><?= money_ar($p['precio_final'] ?? $p['precio_venta'] ?? $p['precio'] ?? 0) ?></strong><?php if(!empty($p['oferta_descuento'])): ?><small class="sale-note">Oferta <?= e($p['oferta_descuento']) ?>% OFF</small><?php endif; ?><div class="product-actions"><button class="btn small btn-detail" type="button" data-id="<?= e($p['id']) ?>">Ver detalle</button><a class="btn small primary" data-wa="<?= e($p['id']) ?>" href="https://wa.me/<?= e(env_value('BIANTI_WHATSAPP','')) ?>?text=<?= urlencode('Hola BIANTI, quiero consultar por este producto: '.($p['titulo'] ?? 'Producto').' - Precio: '.money_ar($p['precio_final'] ?? $p['precio_venta'] ?? $p['precio'] ?? 0)) ?>" target="_blank" rel="noopener">Consultar</a></div></div>
       </article>
     <?php endforeach; ?>
   </div>
@@ -33,7 +33,7 @@
   <div class="section-head"><h2>Ofertas</h2><span>Promociones activas</span></div>
   <div class="products-grid static-grid">
     <?php foreach(array_slice($ofertas,0,6) as $p): ?>
-      <article class="product-card"><img src="<?= e($p['portada'] ?: asset_url('img/logo.png')) ?>" alt=""><div class="product-info"><span class="badge-sale"><?= e($p['oferta_descuento'] ?? '') ?>% OFF</span><h3><?= e($p['titulo'] ?? 'Producto') ?></h3><small class="price-before">Antes <?= money_ar($p['precio_base'] ?? $p['precio'] ?? 0) ?></small><strong class="price-final"><?= money_ar($p['precio_final'] ?? $p['precio_venta'] ?? 0) ?></strong></div></article>
+      <article class="product-card" data-product="<?= e($p['id']) ?>"><img src="<?= e($p['portada'] ?: asset_url('img/logo.png')) ?>" alt=""><div class="product-info"><span class="badge-sale"><?= e($p['oferta_descuento'] ?? '') ?>% OFF</span><h3><?= e($p['titulo'] ?? 'Producto') ?></h3><small class="price-before">Antes <?= money_ar($p['precio_base'] ?? $p['precio'] ?? 0) ?></small><strong class="price-final"><?= money_ar($p['precio_final'] ?? $p['precio_venta'] ?? 0) ?></strong><div class="product-actions"><button class="btn small btn-detail" type="button" data-id="<?= e($p['id']) ?>">Ver detalle</button><a class="btn small primary" data-wa="<?= e($p['id']) ?>" href="https://wa.me/<?= e(env_value('BIANTI_WHATSAPP','')) ?>?text=<?= urlencode('Hola BIANTI, quiero consultar por este producto: '.($p['titulo'] ?? 'Producto').' - Precio: '.money_ar($p['precio_final'] ?? $p['precio_venta'] ?? 0)) ?>" target="_blank" rel="noopener">Consultar</a></div></div></article>
     <?php endforeach; ?>
   </div>
   <?php endif; ?>
@@ -51,4 +51,20 @@
     <div class="filter-actions"><button class="btn primary" id="applyFilters" type="button">Aplicar filtros</button><button class="btn outline" id="clearFilters" type="button">Limpiar</button></div>
   </div>
 </div>
+<div class="product-modal" id="productModal" hidden aria-hidden="true">
+  <div class="product-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="modalProductTitle">
+    <button class="product-modal__close" type="button" data-modal-close aria-label="Cerrar detalle">×</button>
+    <img id="modalProductImage" class="product-modal__image" src="<?= asset_url('img/logo.png') ?>" alt="">
+    <div class="product-modal__content">
+      <span id="modalProductCategory" class="badge-dark">Categoría</span>
+      <h2 id="modalProductTitle">Producto</h2>
+      <strong id="modalProductPrice" class="product-modal__price"></strong>
+      <p id="modalProductDescription" class="product-modal__description"></p>
+      <div id="modalProductTalles" class="product-modal__chips"></div>
+      <span id="modalProductState" class="state ok"></span>
+      <a id="modalProductWhatsapp" class="btn primary" data-wa="" href="#" target="_blank" rel="noopener">Consultar por WhatsApp</a>
+    </div>
+  </div>
+</div>
+<script type="application/json" id="biantiStaticProducts"><?= json_encode(array_values(array_merge($destacados ?? [], $ofertas ?? [])), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
 <script>window.BIANTI_CATEGORY_TALLES = <?= json_encode($tallesPorCategoria ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>; window.BIANTI_ALL_TALLES = <?= json_encode($talles ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;</script>
