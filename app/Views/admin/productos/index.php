@@ -1,4 +1,4 @@
-<section class="page-head"><div><h1>Productos</h1><p>Buscar, filtrar y administrar productos usando la misma base de Supabase.</p></div><div class="page-actions"><a class="btn primary" href="<?= site_url('admin/importar-productos') ?>">Nuevo producto</a></div></section>
+<section class="page-head"><div><h1>Productos</h1><p>Buscar, filtrar y administrar productos usando la misma base de Supabase.</p></div><div class="page-actions"><a class="btn primary" href="<?= site_url('admin/productos/nuevo') ?>">Nuevo producto</a><a class="btn outline" href="<?= site_url('admin/importar-productos') ?>">Importar</a></div></section>
 <?php if(!empty($error)): ?><div class="alert error"><?= e($error) ?></div><?php endif; ?>
 <form class="filter-admin" method="get">
   <input name="q" value="<?= e($_GET['q'] ?? '') ?>" placeholder="Buscar por título o categoría...">
