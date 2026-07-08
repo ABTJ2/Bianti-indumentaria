@@ -36,5 +36,7 @@ $router->post('admin/categorias/eliminar/(:num)', 'Admin\Categorias::eliminar');
 $router->post('admin/pedidos/estado/(:num)', 'Admin\Pedidos::estado');
 $router->post('admin/pedidos/eliminar/(:num)', 'Admin\Pedidos::eliminar');
 $router->post('admin/metricas/limpiar-huerfanas', 'Admin\Metricas::limpiarHuerfanas');
+$router->post('admin/metricas/resetear', 'Admin\Metricas::resetear');
+$router->post('admin/estadisticas/resetear', 'Admin\Estadisticas::resetear');
 $router->post('admin/ofertas/guardar', 'Admin\Ofertas::guardar');
 $router->post('admin/ofertas/eliminar/(:num)', 'Admin\Ofertas::eliminar');

@@ -65,6 +65,7 @@ function openAdminConfirm(form) {
   pendingConfirmForm = form;
   if (confirmTitle) confirmTitle.textContent = form.dataset.confirmTitle || 'Confirmar acción';
   if (confirmMessage) confirmMessage.textContent = form.dataset.confirmMessage || 'Esta acción no se puede deshacer.';
+  if (confirmOk) confirmOk.textContent = form.dataset.confirmOk || 'Sí, confirmar';
   if (!confirmModal) return;
   confirmModal.hidden = false;
   confirmModal.setAttribute('aria-hidden', 'false');

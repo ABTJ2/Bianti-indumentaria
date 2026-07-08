@@ -36,7 +36,7 @@ final class ProductoModel extends BaseSupabaseModel
         return $out;
     }
 
-    public function summaryByIds(array $ids, bool $visibleOnly = true): array
+    public function summaryByIds(array $ids, bool $visibleOnly = true, bool $availableOnly = false): array
     {
         $ids = $this->cleanIds($ids);
         if (!$ids) return [];
@@ -46,6 +46,7 @@ final class ProductoModel extends BaseSupabaseModel
             'order' => 'id.desc',
         ];
         if ($visibleOnly) $params['visible'] = 'eq.true';
+        if ($availableOnly) $params['disponible'] = 'eq.true';
         $rows = $this->all($params);
         $rows = $this->applyOffers(array_map(fn($p) => $this->withSummaryShape($p), $rows));
         $byId = [];
@@ -67,16 +68,53 @@ final class ProductoModel extends BaseSupabaseModel
         return $this->hydrateAndFilter($rows, []);
     }
 
-    public function latestVisibleSummary(int $limit = 6): array
+    public function latestVisibleSummary(int $limit = 6, bool $availableOnly = false): array
     {
         $limit = max(1, min(24, $limit));
-        $rows = Cache::remember("bianti_productos_latest_summary_{$limit}", 60, fn() => $this->all([
-            'select' => '*',
-            'visible' => 'eq.true',
-            'order' => 'id.desc',
-            'limit' => $limit,
-        ]));
+        $suffix = $availableOnly ? 'available' : 'all';
+        $rows = Cache::remember("bianti_productos_latest_summary_{$limit}_{$suffix}", 60, function () use ($limit, $availableOnly) {
+            $params = ['select' => '*', 'visible' => 'eq.true', 'order' => 'id.desc', 'limit' => $limit];
+            if ($availableOnly) $params['disponible'] = 'eq.true';
+            return $this->all($params);
+        });
         return $this->applyOffers(array_map(fn($p) => $this->withSummaryShape($p), $rows));
+    }
+
+    public function lowStockProducts(int $limit = 20): array
+    {
+        $stock = $this->stockColumns();
+        if (!$stock) return [];
+        $rows = $this->admin(['limit' => 200]);
+        $rows = array_values(array_filter($rows, fn($p) => !empty($p['stock_bajo'])));
+        return array_slice($rows, 0, max(1, $limit));
+    }
+
+    public function stockColumns(): array
+    {
+        $cols = $this->knownProductColumns();
+        $actual = '';
+        foreach (['stock_actual', 'stock', 'cantidad', 'cantidad_disponible'] as $name) {
+            if (in_array($name, $cols, true)) { $actual = $name; break; }
+        }
+        $min = '';
+        foreach (['stock_minimo', 'minimo_stock'] as $name) {
+            if (in_array($name, $cols, true)) { $min = $name; break; }
+        }
+        return $actual && $min ? ['actual' => $actual, 'minimo' => $min] : [];
+    }
+
+    public function knownProductColumns(): array
+    {
+        static $columns = null;
+        if (is_array($columns)) return $columns;
+        try {
+            $rows = $this->all(['select' => '*', 'limit' => 1]);
+            $columns = $rows ? array_keys($rows[0]) : [];
+            return $columns;
+        } catch (\Throwable) {
+            $columns = [];
+            return [];
+        }
     }
 
     public function accountingRows(): array
@@ -164,6 +202,7 @@ final class ProductoModel extends BaseSupabaseModel
             $p['fotos'] = $fotoBy[$pid] ?? [];
             $p['talles'] = array_values(array_unique(array_filter($talleBy[$pid] ?? [])));
             $p['portada'] = $this->cover($p);
+            $p = $this->withStockShape($p);
             $out[] = $p;
         }
         $out = $this->applyOffers($out);
@@ -295,6 +334,10 @@ final class ProductoModel extends BaseSupabaseModel
 
     public function deleteWithRelations(int $id): void
     {
+        $blockers = $this->deletionBlockers($id);
+        if ($blockers) {
+            throw new \RuntimeException('Este producto tiene ventas o pedidos vendidos asociados. Para no romper el historial, se recomienda ocultarlo en lugar de eliminarlo.');
+        }
         $this->sb->delete('producto_fotos', ['producto_id' => 'eq.' . $id]);
         $this->sb->delete('producto_talles', ['producto_id' => 'eq.' . $id]);
         $this->sb->delete('producto_categorias', ['producto_id' => 'eq.' . $id]);
@@ -303,6 +346,26 @@ final class ProductoModel extends BaseSupabaseModel
         (new OfferService())->delete((string)$id);
         $this->deleteById($id);
         Cache::forgetPrefix('bianti_');
+    }
+
+    public function deletionBlockers(int $id): array
+    {
+        $blockers = [];
+        try {
+            $pedidos = $this->sb->select('pedidos', ['select' => 'id,estado,producto_id', 'producto_id' => 'eq.' . $id, 'limit' => 200]);
+            foreach ($pedidos as $pedido) {
+                if (($pedido['estado'] ?? '') === 'vendido') { $blockers[] = 'pedidos vendidos'; break; }
+            }
+        } catch (\Throwable) {}
+        try {
+            $ventas = $this->sb->select('ventas', ['select' => 'id,producto_id', 'producto_id' => 'eq.' . $id, 'limit' => 1]);
+            if ($ventas) $blockers[] = 'ventas';
+        } catch (\Throwable) {}
+        try {
+            $manuales = $this->sb->select('ventas_manuales', ['select' => 'id,producto_id', 'producto_id' => 'eq.' . $id, 'limit' => 1]);
+            if ($manuales) $blockers[] = 'ventas manuales';
+        } catch (\Throwable) {}
+        return array_values(array_unique($blockers));
     }
 
     public function cover(array $p): string
@@ -362,6 +425,22 @@ final class ProductoModel extends BaseSupabaseModel
         $p['fotos'] = [];
         $p['talles'] = [];
         $p['portada'] = $this->cover($p);
+        return $this->withStockShape($p);
+    }
+
+    private function withStockShape(array $p): array
+    {
+        $stock = $this->stockColumns();
+        if (!$stock) {
+            $p['stock_soportado'] = false;
+            return $p;
+        }
+        $actual = max(0, (int)($p[$stock['actual']] ?? 0));
+        $minimo = max(0, (int)($p[$stock['minimo']] ?? 0));
+        $p['stock_soportado'] = true;
+        $p['stock_actual_valor'] = $actual;
+        $p['stock_minimo_valor'] = $minimo;
+        $p['stock_bajo'] = $actual <= $minimo;
         return $p;
     }
 }

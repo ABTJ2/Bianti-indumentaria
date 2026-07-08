@@ -11,22 +11,31 @@ final class Productos extends Controller
     {
         $this->requireAuth();
         try {
-            $productos = (new ProductoModel())->admin($_GET);
-            $categorias = (new CategoriaModel())->normalize((new CategoriaModel())->ordered(false));
-            $this->view('admin/productos/index', compact('productos', 'categorias'), 'layouts/admin');
+            $model = new ProductoModel();
+            $productos = $model->admin($_GET);
+            $stockColumns = $model->stockColumns();
+            $hasStock = !empty($stockColumns);
+            $catModel = new CategoriaModel();
+            $categorias = $catModel->normalize($catModel->ordered(false));
+            $this->view('admin/productos/index', compact('productos', 'categorias', 'hasStock', 'stockColumns'), 'layouts/admin');
         } catch (\Throwable $e) {
             $error = $e->getMessage();
             $productos = [];
             $categorias = [];
-            $this->view('admin/productos/index', compact('productos', 'categorias', 'error'), 'layouts/admin');
+            $hasStock = false;
+            $stockColumns = [];
+            $this->view('admin/productos/index', compact('productos', 'categorias', 'error', 'hasStock', 'stockColumns'), 'layouts/admin');
         }
     }
 
     public function nuevo(): void
     {
         $this->requireAuth();
+        $model = new ProductoModel();
         $categorias = (new CategoriaModel())->normalize((new CategoriaModel())->ordered(false));
-        $this->view('admin/productos/nuevo', compact('categorias'), 'layouts/admin');
+        $stockColumns = $model->stockColumns();
+        $hasStock = !empty($stockColumns);
+        $this->view('admin/productos/nuevo', compact('categorias', 'hasStock', 'stockColumns'), 'layouts/admin');
     }
 
     public function crear(): void
@@ -46,6 +55,10 @@ final class Productos extends Controller
         }
         if ($precio === '' || !is_numeric($precio) || (float)$precio < 0) {
             $_SESSION['flash_error'] = 'El precio de venta debe ser numérico.';
+            redirect_to('admin/productos/nuevo');
+        }
+        if ($precioCosto !== '' && (!is_numeric($precioCosto) || (float)$precioCosto < 0)) {
+            $_SESSION['flash_error'] = 'El precio de costo debe ser numérico o 0.';
             redirect_to('admin/productos/nuevo');
         }
         foreach ($categoriaIds as $categoriaId) {
@@ -71,6 +84,7 @@ final class Productos extends Controller
 
         try {
             $model = new ProductoModel();
+            $this->appendStockData($data, $model->stockColumns(), 'admin/productos/nuevo');
             $created = $model->create($data);
             $id = (int)($created[0]['id'] ?? 0);
             if (!$id) throw new \RuntimeException('Supabase no devolvió el ID del producto creado.');
@@ -95,10 +109,13 @@ final class Productos extends Controller
     public function editar(int $id): void
     {
         $this->requireAuth();
-        $producto = (new ProductoModel())->hydratedFind($id);
+        $model = new ProductoModel();
+        $producto = $model->hydratedFind($id);
         $categorias = (new CategoriaModel())->ordered(false);
+        $stockColumns = $model->stockColumns();
+        $hasStock = !empty($stockColumns);
         if (!$producto) redirect_to('admin/productos');
-        $this->view('admin/productos/editar', compact('producto', 'categorias'), 'layouts/admin');
+        $this->view('admin/productos/editar', compact('producto', 'categorias', 'hasStock', 'stockColumns'), 'layouts/admin');
     }
 
     public function guardar(int $id): void
@@ -117,6 +134,10 @@ final class Productos extends Controller
         }
         if ($precio === '' || !is_numeric($precio) || (float)$precio < 0) {
             $_SESSION['flash_error'] = 'El precio de venta debe ser numérico.';
+            redirect_to('admin/productos/editar/' . $id);
+        }
+        if ($precioCosto !== '' && (!is_numeric($precioCosto) || (float)$precioCosto < 0)) {
+            $_SESSION['flash_error'] = 'El precio de costo debe ser numérico o 0.';
             redirect_to('admin/productos/editar/' . $id);
         }
         foreach ($cats as $categoriaId) {
@@ -138,6 +159,7 @@ final class Productos extends Controller
         ];
         try {
             $model = new ProductoModel();
+            $this->appendStockData($data, $model->stockColumns(), 'admin/productos/editar/' . $id);
             $model->updateById($id, $data);
             $talles = array_filter(array_map('trim', preg_split('/[,;\r\n]+/', (string)($_POST['talles'] ?? ''))));
             $model->updateRelations($id, $cats, $talles);
@@ -180,6 +202,19 @@ final class Productos extends Controller
         }
         $_FILES['portada']['type'] = $mime;
         return true;
+    }
+
+    private function appendStockData(array &$data, array $stockColumns, string $failRedirect): void
+    {
+        if (!$stockColumns) return;
+        $actual = $_POST['stock_actual'] ?? '0';
+        $minimo = $_POST['stock_minimo'] ?? '0';
+        if (!preg_match('/^\d+$/', (string)$actual) || !preg_match('/^\d+$/', (string)$minimo)) {
+            $_SESSION['flash_error'] = 'El stock actual y mínimo deben ser enteros mayores o iguales a 0.';
+            redirect_to($failRedirect);
+        }
+        $data[$stockColumns['actual']] = (int)$actual;
+        $data[$stockColumns['minimo']] = (int)$minimo;
     }
 
     public function toggle(int $id): void
