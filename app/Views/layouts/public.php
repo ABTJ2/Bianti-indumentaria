@@ -18,9 +18,11 @@
 </header>
 <?= $content ?>
 <footer id="contacto" class="footer-public footer-rich">
-  <div class="footer-brand"><img src="<?= asset_url('img/logo.png') ?>" alt="BIANTI"><div><strong>BIANTI INDUMENTARIA</strong><span>Moda para todos los días</span></div></div>
-  <div class="footer-copy"><strong>Catálogo online</strong><span>Productos seleccionados, atención personalizada y medios de pago seguros.</span></div>
-  <div class="footer-contact"><strong>Contacto</strong><a target="_blank" href="https://wa.me/<?= e(env_value('BIANTI_WHATSAPP','')) ?>">WhatsApp <?= e(env_value('BIANTI_WHATSAPP','')) ?></a><span>Caucete, San Juan</span></div>
+  <div class="footer-columns">
+    <div class="footer-brand"><img src="<?= asset_url('img/logo.png') ?>" alt="BIANTI"><div><strong>BIANTI INDUMENTARIA</strong><span>Moda para todos los días</span></div></div>
+    <div class="footer-copy"><strong>Catálogo online</strong><span>Productos seleccionados, atención personalizada y medios de pago seguros.</span><a href="<?= site_url('catalogo') ?>">Ver catálogo</a></div>
+    <div class="footer-contact"><strong>Contacto</strong><a target="_blank" rel="noopener" href="https://wa.me/<?= e(env_value('BIANTI_WHATSAPP','')) ?>">WhatsApp <?= e(env_value('BIANTI_WHATSAPP','')) ?></a><span>Caucete, San Juan</span></div>
+  </div>
   <div class="footer-rights"><span>© 2026 BIANTI INDUMENTARIA. Todos los derechos reservados.</span><a class="private-access" href="<?= site_url('admin/login') ?>" title="Acceso privado" aria-label="Acceso privado">•</a></div>
 </footer>
 <script>window.BIANTI_BASE='<?= site_url('') ?>'; window.BIANTI_WA='<?= e(env_value('BIANTI_WHATSAPP','')) ?>';</script>

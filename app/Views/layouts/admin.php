@@ -54,6 +54,13 @@ $cur = current_path();
   <?php if(!empty($_SESSION['flash_error'])): ?><div class="alert error"><?= e($_SESSION['flash_error']); unset($_SESSION['flash_error']); ?></div><?php endif; ?>
   <?= $content ?>
 </main>
+<div class="admin-confirm" id="adminConfirm" hidden aria-hidden="true">
+  <div class="admin-confirm__dialog" role="dialog" aria-modal="true" aria-labelledby="adminConfirmTitle">
+    <h2 id="adminConfirmTitle">Confirmar acción</h2>
+    <p id="adminConfirmMessage">Esta acción no se puede deshacer.</p>
+    <div class="admin-confirm__actions"><button class="btn outline" type="button" data-confirm-cancel>Cancelar</button><button class="btn primary" type="button" data-confirm-ok>Sí, confirmar</button></div>
+  </div>
+</div>
 <script src="<?= asset_url('js/admin-ci.js') ?>"></script>
 </body>
 </html>

@@ -1,4 +1,11 @@
+const DEBUG_PERFORMANCE = false;
+const adminPerfStart = performance.now();
 const collapsedKey = 'bianti-sidebar-collapsed';
+const confirmModal = document.querySelector('#adminConfirm');
+const confirmTitle = document.querySelector('#adminConfirmTitle');
+const confirmMessage = document.querySelector('#adminConfirmMessage');
+const confirmOk = document.querySelector('[data-confirm-ok]');
+let pendingConfirmForm = null;
 
 if (localStorage.getItem(collapsedKey) === '1') {
   document.body.classList.add('sidebar-collapsed');
@@ -34,11 +41,55 @@ document.addEventListener('click', (e) => {
     const form = closeCategory.closest('.edit-cat');
     if (form) form.hidden = true;
   }
+
+  if (e.target.closest('[data-confirm-cancel]') || e.target === confirmModal) {
+    closeAdminConfirm();
+  }
+
+  if (e.target.closest('[data-confirm-ok]') && pendingConfirmForm) {
+    const form = pendingConfirmForm;
+    closeAdminConfirm();
+    form.dataset.confirmed = '1';
+    form.requestSubmit();
+  }
 });
 
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') document.body.classList.remove('menu-open');
+document.addEventListener('submit', (e) => {
+  const form = e.target.closest('form[data-confirm-message]');
+  if (!form || form.dataset.confirmed === '1') return;
+  e.preventDefault();
+  openAdminConfirm(form);
 });
+
+function openAdminConfirm(form) {
+  pendingConfirmForm = form;
+  if (confirmTitle) confirmTitle.textContent = form.dataset.confirmTitle || 'Confirmar acción';
+  if (confirmMessage) confirmMessage.textContent = form.dataset.confirmMessage || 'Esta acción no se puede deshacer.';
+  if (!confirmModal) return;
+  confirmModal.hidden = false;
+  confirmModal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('modal-open');
+  confirmOk?.focus();
+}
+
+function closeAdminConfirm() {
+  pendingConfirmForm = null;
+  if (!confirmModal) return;
+  confirmModal.hidden = true;
+  confirmModal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('modal-open');
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    document.body.classList.remove('menu-open');
+    closeAdminConfirm();
+  }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (DEBUG_PERFORMANCE) console.log(`[BIANTI perf] DOMContentLoaded admin: ${Math.round((performance.now() - adminPerfStart) * 100) / 100} ms`);
+}, { once: true });
 
 document.querySelectorAll('[data-offer-form]').forEach((form) => {
   const input = form.querySelector('[data-discount]');

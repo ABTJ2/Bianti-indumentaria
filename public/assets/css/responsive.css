@@ -27,7 +27,7 @@
   .topbar-public nav { width: 100%; flex-wrap: wrap; gap: 9px; }
   .topbar-public .wa { width: 100%; text-align: center; }
   .catalog-benefits { grid-template-columns: 1fr; margin-top: 18px; }
-  .footer-public { grid-template-columns: 1fr; align-items: start; }
+  .footer-columns { grid-template-columns: 1fr; }
   .footer-rights { justify-content: space-between; text-align: left; }
   .authStage { grid-template-columns: 1fr; min-height: auto; padding-top: 26px; }
   .authHero { display: none; }
@@ -56,6 +56,7 @@
   .hero-public { min-height: 250px; padding: 32px 20px; }
   .hero-public h1 { font-size: 38px; }
   .search-panel { grid-template-columns: 1fr; }
+  .quick-categories { grid-template-columns: 1fr; }
   .category-grid { grid-template-columns: 1fr; }
   .products-grid { grid-template-columns: 1fr; }
   .product-actions { grid-template-columns: 1fr; }
@@ -63,6 +64,9 @@
   .filter-actions { display: grid; grid-template-columns: 1fr; }
   .footer-public { padding: 26px 18px; }
   .footer-rights { display: grid; gap: 8px; }
+  .offer-grid { grid-template-columns: 1fr; }
+  .admin-confirm { padding: 12px; }
+  .admin-confirm__actions { display: grid; grid-template-columns: 1fr; }
   .login-box { padding: 18px; }
   .authIdentity h1 { font-size: 18px; }
   .product-modal { padding: 10px; }

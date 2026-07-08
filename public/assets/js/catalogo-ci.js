@@ -1,10 +1,21 @@
 (() => {
+  const DEBUG_PERFORMANCE = false;
+  const perfStart = performance.now();
+  const perf = {
+    time(label) { if (DEBUG_PERFORMANCE) console.time(`[BIANTI perf] ${label}`); },
+    timeEnd(label) { if (DEBUG_PERFORMANCE) console.timeEnd(`[BIANTI perf] ${label}`); },
+    log(label, start) { if (DEBUG_PERFORMANCE) console.log(`[BIANTI perf] ${label}: ${Math.round((performance.now() - start) * 100) / 100} ms`); }
+  };
   const $ = (selector, root = document) => root.querySelector(selector);
   const productsEl = $('#products');
   const emptyEl = $('#empty');
   const search = $('#search');
   const drawer = $('#filterDrawer');
   const btnFilters = $('#btnFilters');
+  const quickCategory = $('#quickCategory');
+  const clearCategory = $('#clearCategory');
+  const dynamicResults = $('#dynamicResults');
+  const staticSections = Array.from(document.querySelectorAll('[data-static-section]'));
   const filterCategory = $('#filterCategory');
   const filterTalle = $('#filterTalle');
   const talleFilterWrap = $('#talleFilterWrap');
@@ -109,7 +120,7 @@
     const before = product.oferta_descuento ? `<small class="price-before">Antes ${money(product.precio_base ?? product.precio ?? price)}</small>` : '';
     const sale = product.oferta_descuento ? `<span class="badge-sale">${esc(product.oferta_descuento)}% OFF</span>` : `<span class="badge-dark">${esc(cat)}</span>`;
     return `<article class="product-card" data-product="${esc(product.id)}">
-      <img src="${esc(product.portada)}" alt="${esc(product.titulo || 'Producto')}" loading="lazy">
+      <img src="${esc(product.portada)}" alt="${esc(product.titulo || 'Producto')}" loading="lazy" width="360" height="420">
       <div class="product-info">
         ${sale}
         <h3>${esc(product.titulo || 'Producto')}</h3>
@@ -132,6 +143,20 @@
     filterTalle.innerHTML = '<option value="">Todos los talles</option>' + list.map((talle) => `<option value="${esc(talle)}">${esc(talle)}</option>`).join('');
     if (!list.includes(state.currentTalle)) state.currentTalle = '';
     filterTalle.value = state.currentTalle;
+  }
+
+  function selectedCategoryName() {
+    const value = String(state.currentCategory || '');
+    if (!value) return '';
+    const options = [...(filterCategory?.options || []), ...(quickCategory?.options || [])];
+    const option = options.find((item) => String(item.value) === value);
+    return option?.textContent?.trim() || '';
+  }
+
+  function syncCategoryControls() {
+    if (filterCategory) filterCategory.value = state.currentCategory;
+    if (quickCategory) quickCategory.value = state.currentCategory;
+    staticSections.forEach((section) => { section.hidden = Boolean(state.currentCategory); });
   }
 
   function matches(product) {
@@ -163,25 +188,29 @@
   }
 
   function renderProducts() {
+    const start = performance.now();
     if (!productsEl) return;
     if (!hasActiveQuery()) {
+      if (dynamicResults) dynamicResults.hidden = true;
+      staticSections.forEach((section) => { section.hidden = false; });
       productsEl.innerHTML = '';
-      if (emptyEl) {
-        emptyEl.hidden = false;
-        emptyEl.textContent = 'Elegí una categoría o buscá por nombre para ver productos.';
-      }
+      if (emptyEl) emptyEl.hidden = true;
       if (resultsTitle) resultsTitle.textContent = 'Productos';
       if (resultsCount) resultsCount.textContent = '';
+      perf.log('render productos vacio', start);
       return;
     }
+    if (dynamicResults) dynamicResults.hidden = false;
+    staticSections.forEach((section) => { section.hidden = Boolean(state.currentCategory); });
     const filtered = sortProducts(state.results.filter(matches));
     productsEl.innerHTML = filtered.map(productCard).join('');
     if (emptyEl) {
       emptyEl.hidden = filtered.length > 0 || state.loading;
       emptyEl.textContent = state.loading ? 'Cargando productos...' : 'No encontramos productos con esos filtros.';
     }
-    if (resultsTitle) resultsTitle.textContent = state.currentCategory || (search?.value || '').trim() ? 'Productos encontrados' : 'Productos';
+    if (resultsTitle) resultsTitle.textContent = state.currentCategory ? `Categoría: ${selectedCategoryName() || 'seleccionada'}` : 'Productos encontrados';
     if (resultsCount) resultsCount.textContent = filtered.length ? `${filtered.length} producto${filtered.length === 1 ? '' : 's'}` : '';
+    perf.log('render productos terminado', start);
   }
 
   async function fetchProducts() {
@@ -192,7 +221,10 @@
     }
     state.loading = true;
     renderProducts();
+    let fetchTimerOpen = false;
     try {
+      perf.time('fetch catalogo productos');
+      fetchTimerOpen = true;
       const params = new URLSearchParams();
       const query = (search?.value || '').trim();
       if (query) params.set('q', query);
@@ -200,6 +232,8 @@
       if (state.currentTalle) params.set('talle', state.currentTalle);
       if (sort?.value) params.set('sort', sort.value);
       const response = await fetch(api(`api/catalogo/productos?${params.toString()}`));
+      perf.timeEnd('fetch catalogo productos');
+      fetchTimerOpen = false;
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
       if (!data.ok) throw new Error(data.error || 'Respuesta inválida');
@@ -207,11 +241,14 @@
       state.ready = true;
       state.loading = false;
       updateTalleOptions();
+      syncCategoryControls();
       renderProducts();
     } catch (error) {
+      if (fetchTimerOpen) perf.timeEnd('fetch catalogo productos');
       console.error('[BIANTI catálogo] Error cargando productos.', error);
       state.ready = true;
       state.loading = false;
+      syncCategoryControls();
       renderProducts();
     }
   }
@@ -301,10 +338,10 @@
     const category = event.target.closest('.category-card[data-category]');
     if (category) {
       state.currentCategory = String(category.dataset.category || '');
-      if (filterCategory) filterCategory.value = state.currentCategory;
       updateTalleOptions();
+      syncCategoryControls();
       fetchProducts();
-      productsEl?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      dynamicResults?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       logEvent('view_category', { categoria_id: state.currentCategory });
       return;
     }
@@ -314,16 +351,18 @@
   });
 
   btnFilters?.addEventListener('click', openFilters);
-  $('#applyFilters')?.addEventListener('click', () => { closeFilters(); fetchProducts(); });
+  $('#applyFilters')?.addEventListener('click', () => { syncCategoryControls(); closeFilters(); fetchProducts(); });
   $('#clearFilters')?.addEventListener('click', () => {
     state.currentCategory = '';
     state.currentTalle = '';
     if (filterCategory) filterCategory.value = '';
+    if (quickCategory) quickCategory.value = '';
     if (filterTalle) filterTalle.value = '';
     if (search) search.value = '';
     if (sort) sort.value = 'recientes';
     state.results = [];
     updateTalleOptions();
+    syncCategoryControls();
     closeFilters();
     renderProducts();
   });
@@ -331,7 +370,29 @@
     window.clearTimeout(searchTimer);
     searchTimer = window.setTimeout(fetchProducts, 250);
   });
-  filterCategory?.addEventListener('change', () => { state.currentCategory = filterCategory.value; updateTalleOptions(); });
+  filterCategory?.addEventListener('change', () => { state.currentCategory = filterCategory.value; updateTalleOptions(); syncCategoryControls(); });
+  quickCategory?.addEventListener('change', () => {
+    state.currentCategory = quickCategory.value;
+    state.currentTalle = '';
+    updateTalleOptions();
+    syncCategoryControls();
+    fetchProducts();
+    dynamicResults?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (state.currentCategory) logEvent('view_category', { categoria_id: state.currentCategory });
+  });
+  clearCategory?.addEventListener('click', () => {
+    state.currentCategory = '';
+    state.currentTalle = '';
+    state.results = [];
+    if (filterCategory) filterCategory.value = '';
+    if (quickCategory) quickCategory.value = '';
+    if (filterTalle) filterTalle.value = '';
+    if (search) search.value = '';
+    if (sort) sort.value = 'recientes';
+    updateTalleOptions();
+    syncCategoryControls();
+    renderProducts();
+  });
   filterTalle?.addEventListener('change', () => { state.currentTalle = filterTalle.value; });
   sort?.addEventListener('change', fetchProducts);
   document.addEventListener('keydown', (event) => {
@@ -343,5 +404,7 @@
 
   loadStaticProducts();
   updateTalleOptions();
+  syncCategoryControls();
   renderProducts();
+  document.addEventListener('DOMContentLoaded', () => perf.log('DOMContentLoaded catalogo', perfStart), { once: true });
 })();
