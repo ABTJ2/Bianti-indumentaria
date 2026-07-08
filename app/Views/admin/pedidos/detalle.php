@@ -5,12 +5,13 @@
     <div class="stat-line"><span>Fecha</span><strong><?= e($pedido['created_at'] ?? '-') ?></strong></div>
     <div class="stat-line"><span>Producto</span><strong><?= e($pedido['producto_titulo'] ?? $pedido['titulo'] ?? '-') ?></strong></div>
     <div class="stat-line"><span>ID producto</span><strong><?= e($pedido['producto_id'] ?? '-') ?></strong></div>
-    <div class="stat-line"><span>Total</span><strong><?= isset($pedido['vendido_total']) ? money_ar($pedido['vendido_total']) : (isset($pedido['producto_precio']) ? money_ar($pedido['producto_precio']) : '-') ?></strong></div>
+    <?php $precioPedido = $pedido['vendido_total'] ?? $pedido['vendido_precio_final'] ?? $pedido['producto_precio'] ?? $pedido['total'] ?? $pedido['precio_final'] ?? null; ?>
+    <div class="stat-line"><span>Precio</span><strong><?= is_numeric($precioPedido) && (float)$precioPedido > 0 ? money_ar($precioPedido) : 'Sin precio registrado' ?></strong></div>
     <div class="stat-line"><span>Origen</span><strong><?= e($pedido['origen'] ?? $pedido['source'] ?? 'WhatsApp / catálogo') ?></strong></div>
     <div class="stat-line"><span>Cliente</span><strong><?= e($pedido['cliente_nombre'] ?? $pedido['nombre'] ?? $pedido['cliente'] ?? '-') ?></strong></div>
     <div class="stat-line"><span>Contacto</span><strong><?= e($pedido['cliente_telefono'] ?? $pedido['telefono'] ?? $pedido['whatsapp'] ?? '-') ?></strong></div>
   </div>
   <h2>Mensaje</h2>
   <p class="muted"><?= e($pedido['mensaje'] ?? 'Sin mensaje registrado.') ?></p>
-  <div class="actions"><form method="post" action="<?= site_url('admin/pedidos/estado/'.($pedido['id'] ?? 0)) ?>"><?= csrf_field() ?><input type="hidden" name="estado" value="vendido"><button class="btn primary">Marcar vendido</button></form><form method="post" action="<?= site_url('admin/pedidos/estado/'.($pedido['id'] ?? 0)) ?>"><?= csrf_field() ?><input type="hidden" name="estado" value="no_vendido"><button class="btn">Marcar no vendido</button></form><form method="post" action="<?= site_url('admin/pedidos/estado/'.($pedido['id'] ?? 0)) ?>"><?= csrf_field() ?><input type="hidden" name="estado" value="cancelado"><button class="btn">Cancelar pedido</button></form></div>
+  <div class="actions"><form method="post" action="<?= site_url('admin/pedidos/estado/'.($pedido['id'] ?? 0)) ?>"><?= csrf_field() ?><input type="hidden" name="estado" value="vendido"><button class="btn primary">Marcar vendido</button></form><form method="post" action="<?= site_url('admin/pedidos/estado/'.($pedido['id'] ?? 0)) ?>"><?= csrf_field() ?><input type="hidden" name="estado" value="no_vendido"><button class="btn">Marcar no vendido</button></form><form method="post" action="<?= site_url('admin/pedidos/estado/'.($pedido['id'] ?? 0)) ?>"><?= csrf_field() ?><input type="hidden" name="estado" value="cancelado"><button class="btn">Cancelar pedido</button></form><form method="post" action="<?= site_url('admin/pedidos/eliminar/'.($pedido['id'] ?? 0)) ?>" onsubmit="return confirm('Esto elimina el pedido de la base. ¿Seguro?')"><?= csrf_field() ?><button class="btn">Eliminar</button></form></div>
 </div>

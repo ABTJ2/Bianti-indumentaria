@@ -165,6 +165,30 @@ final class ProductoModel extends BaseSupabaseModel
         }
     }
 
+    public function attachPhoto(int $id, string $tmpFile, string $originalName, string $mime, bool $cover = true): string
+    {
+        $filename = $this->safeFileName($originalName);
+        $path = 'productos/' . $id . '/' . time() . '-' . bin2hex(random_bytes(4)) . '-' . $filename;
+        $url = $this->sb->upload('productos', $path, $tmpFile, $mime);
+        $orden = $cover ? 0 : $this->nextPhotoOrder($id);
+        $this->sb->insert('producto_fotos', ['producto_id' => $id, 'url' => $url, 'orden' => $orden]);
+        if ($cover) $this->updateById($id, ['portada_url' => $url]);
+        return $url;
+    }
+
+    private function nextPhotoOrder(int $id): int
+    {
+        $rows = $this->sb->select('producto_fotos', ['select' => 'orden', 'producto_id' => 'eq.' . $id, 'order' => 'orden.desc', 'limit' => 1]);
+        return (int)($rows[0]['orden'] ?? 0) + 1;
+    }
+
+    private function safeFileName(string $name): string
+    {
+        $name = strtolower((string)preg_replace('/[^a-zA-Z0-9.\-_]+/', '-', iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $name) ?: $name));
+        $name = trim(preg_replace('/-+/', '-', $name), '-.');
+        return $name ?: 'producto.jpg';
+    }
+
     public function deleteWithRelations(int $id): void
     {
         $this->sb->delete('producto_fotos', ['producto_id' => 'eq.' . $id]);

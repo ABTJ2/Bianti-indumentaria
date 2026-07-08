@@ -1,5 +1,5 @@
 <section class="page-head"><div><h1>Nuevo producto</h1><p>Alta manual básica sin cambiar la estructura de Supabase.</p></div></section>
-<form class="panel edit-product" method="post" action="<?= site_url('admin/productos/guardar') ?>">
+<form class="panel edit-product" method="post" action="<?= site_url('admin/productos/guardar') ?>" enctype="multipart/form-data">
   <?= csrf_field() ?>
   <div class="edit-grid two">
     <label>Título<input name="titulo" required placeholder="Ej: TEST BIANTI NO USAR"></label>
@@ -11,7 +11,8 @@
   </div>
   <label>Descripción<textarea name="descripcion" placeholder="Descripción corta del producto"></textarea></label>
   <div class="panel-soft"><strong>Categorías</strong><div class="check-grid category-checks"><?php foreach($categorias as $c): ?><label><input type="checkbox" name="categorias[]" value="<?= e($c['id']) ?>"> <?= e($c['nombre']) ?></label><?php endforeach; ?></div></div>
+  <label>Foto / portada <small>JPG, PNG o WEBP. Máximo 5 MB.</small><input name="portada" type="file" accept="image/jpeg,image/png,image/webp"></label>
   <div class="check-grid"><label><input type="checkbox" name="visible" checked> Visible en catálogo</label><label><input type="checkbox" name="disponible" checked> Disponible</label></div>
-  <div class="alert ok">La carga manual de fotos queda pendiente para integrarla con el bucket de Storage sin riesgo. Podés crear el producto básico y luego usar importador/edición existente para imágenes.</div>
+  <div class="alert ok">La foto se sube al bucket <strong>productos</strong> de Supabase Storage y queda como portada.</div>
   <div class="actions"><button class="btn primary">Guardar producto</button><a class="btn outline" href="<?= site_url('admin/productos') ?>">Cancelar</a></div>
 </form>

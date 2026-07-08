@@ -1,12 +1,16 @@
 <?php
-$views = array_filter($eventos, fn($e) => ($e['type'] ?? '') === 'view_product');
-$wa = array_filter($eventos, fn($e) => ($e['type'] ?? '') === 'click_whatsapp');
 $productMap = [];
 foreach ($productos as $p) $productMap[(string)($p['id'] ?? '')] = $p;
+$eventProductId = function($e) {
+  $payload = is_array($e['payload'] ?? null) ? $e['payload'] : json_decode((string)($e['payload'] ?? '{}'), true);
+  if (!is_array($payload)) return '';
+  return (string)($payload['producto_id'] ?? $payload['id_producto'] ?? $payload['product_id'] ?? ((in_array(($e['type'] ?? ''), ['view_product','click_whatsapp'], true)) ? ($payload['id'] ?? '') : ''));
+};
+$views = array_filter($eventos, fn($e) => ($e['type'] ?? '') === 'view_product' && isset($productMap[$eventProductId($e)]));
+$wa = array_filter($eventos, fn($e) => ($e['type'] ?? '') === 'click_whatsapp' && isset($productMap[$eventProductId($e)]));
 $top = [];
 foreach ($views as $e) {
-  $payload = is_array($e['payload'] ?? null) ? $e['payload'] : json_decode((string)($e['payload'] ?? '{}'), true);
-  $id = (string)($payload['producto_id'] ?? '');
+  $id = $eventProductId($e);
   if ($id !== '') $top[$id] = ($top[$id] ?? 0) + 1;
 }
 arsort($top);

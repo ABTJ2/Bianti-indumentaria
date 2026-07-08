@@ -54,6 +54,8 @@ final class Productos extends Controller
                 redirect_to('admin/productos/nuevo');
             }
         }
+        $foto = $_FILES['portada'] ?? null;
+        $fotoValida = $this->validateImageUpload($foto, false, 'admin/productos/nuevo');
 
         $data = [
             'categoria_id' => $categoriaIds[0] ?? null,
@@ -74,6 +76,14 @@ final class Productos extends Controller
             if (!$id) throw new \RuntimeException('Supabase no devolvió el ID del producto creado.');
             $talles = array_filter(array_map('trim', preg_split('/[,;\r\n]+/', (string)($_POST['talles'] ?? ''))));
             $model->updateRelations($id, $categoriaIds, $talles);
+            if ($fotoValida) {
+                try {
+                    $model->attachPhoto($id, $foto['tmp_name'], $foto['name'], $foto['type'], true);
+                } catch (\Throwable $uploadError) {
+                    try { $model->deleteWithRelations($id); } catch (\Throwable) {}
+                    throw new \RuntimeException('No se creó el producto porque falló la subida de imagen: ' . $uploadError->getMessage());
+                }
+            }
             $_SESSION['flash_ok'] = 'Producto creado correctamente.';
             redirect_to('admin/productos');
         } catch (\Throwable $e) {
@@ -95,26 +105,81 @@ final class Productos extends Controller
     {
         $this->requireAuth();
         check_csrf();
+        $titulo = trim((string)($_POST['titulo'] ?? ''));
+        $precio = $_POST['precio'] ?? '';
+        $precioCosto = $_POST['precio_costo'] ?? 0;
+        $cats = array_values(array_unique(array_filter(array_map('intval', $_POST['categorias'] ?? []))));
+        $categoriasValidas = array_map(fn($c) => (int)$c['id'], (new CategoriaModel())->ordered(false));
+
+        if ($titulo === '') {
+            $_SESSION['flash_error'] = 'El título es obligatorio.';
+            redirect_to('admin/productos/editar/' . $id);
+        }
+        if ($precio === '' || !is_numeric($precio) || (float)$precio < 0) {
+            $_SESSION['flash_error'] = 'El precio de venta debe ser numérico.';
+            redirect_to('admin/productos/editar/' . $id);
+        }
+        foreach ($cats as $categoriaId) {
+            if (!in_array($categoriaId, $categoriasValidas, true)) {
+                $_SESSION['flash_error'] = 'La categoría seleccionada no es válida.';
+                redirect_to('admin/productos/editar/' . $id);
+            }
+        }
+        $foto = $_FILES['portada'] ?? null;
+        $fotoValida = $this->validateImageUpload($foto, false, 'admin/productos/editar/' . $id);
         $data = [
-            'titulo' => trim((string)($_POST['titulo'] ?? '')),
+            'titulo' => $titulo,
             'descripcion' => trim((string)($_POST['descripcion'] ?? '')),
-            'precio' => (float)($_POST['precio'] ?? 0),
-            'precio_costo' => (float)($_POST['precio_costo'] ?? 0),
+            'precio' => (float)$precio,
+            'precio_venta' => (float)$precio,
+            'precio_costo' => is_numeric($precioCosto) ? (float)$precioCosto : 0,
             'visible' => isset($_POST['visible']),
             'disponible' => isset($_POST['disponible']),
         ];
         try {
             $model = new ProductoModel();
             $model->updateById($id, $data);
-            $cats = array_map('intval', $_POST['categorias'] ?? []);
-            $talles = array_filter(array_map('trim', preg_split('/[,;
-]+/', (string)($_POST['talles'] ?? ''))));
+            $talles = array_filter(array_map('trim', preg_split('/[,;\r\n]+/', (string)($_POST['talles'] ?? ''))));
             $model->updateRelations($id, $cats, $talles);
+            if ($fotoValida) $model->attachPhoto($id, $foto['tmp_name'], $foto['name'], $foto['type'], true);
             $_SESSION['flash_ok'] = 'Producto actualizado.';
         } catch (\Throwable $e) {
             $_SESSION['flash_error'] = 'No se pudo guardar: ' . $e->getMessage();
         }
         redirect_to('admin/productos');
+    }
+
+    private function validateImageUpload(?array $file, bool $required, string $failRedirect): bool
+    {
+        if (!$file || ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+            if ($required) {
+                $_SESSION['flash_error'] = 'La foto es obligatoria.';
+                redirect_to($failRedirect);
+            }
+            return false;
+        }
+        if (($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
+            $_SESSION['flash_error'] = 'No se pudo leer la imagen subida.';
+            redirect_to($failRedirect);
+        }
+        if (($file['size'] ?? 0) > 5 * 1024 * 1024) {
+            $_SESSION['flash_error'] = 'La imagen no puede superar 5 MB.';
+            redirect_to($failRedirect);
+        }
+        $allowed = ['image/jpeg', 'image/png', 'image/webp'];
+        $mime = (string)($file['type'] ?? '');
+        if (function_exists('finfo_open') && is_file($file['tmp_name'] ?? '')) {
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $detected = $finfo ? finfo_file($finfo, $file['tmp_name']) : false;
+            if ($finfo) finfo_close($finfo);
+            if ($detected) $mime = $detected;
+        }
+        if (!in_array($mime, $allowed, true)) {
+            $_SESSION['flash_error'] = 'La imagen debe ser JPG, PNG o WEBP.';
+            redirect_to($failRedirect);
+        }
+        $_FILES['portada']['type'] = $mime;
+        return true;
     }
 
     public function toggle(int $id): void

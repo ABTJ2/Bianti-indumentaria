@@ -17,7 +17,6 @@ final class Dashboard extends Controller
         $stats = [
             'productos' => count($productos),
             'visibles' => count(array_filter($productos, fn($p) => !empty($p['visible']))),
-            'consultas' => count(array_filter($eventos, fn($e) => ($e['type'] ?? '') === 'click_whatsapp')),
             'pedidos' => count($pedidos),
         ];
         $this->view('admin/dashboard/index', compact('stats', 'productos', 'eventos', 'pedidos'), 'layouts/admin');
