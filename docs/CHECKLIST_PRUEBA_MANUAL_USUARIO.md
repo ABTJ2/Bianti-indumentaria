@@ -10,6 +10,14 @@
 6. Tocar `Consultar`.
 7. Confirmar que abre WhatsApp.
 8. Confirmar que el pedido aparece en `admin/pedidos`.
+9. Abrir desde celular.
+10. Revisar orden: buscador, selector rápido, destacados, ofertas, categorías.
+11. Seleccionar categoría.
+12. Confirmar que aparece `Categoría: [nombre]`.
+13. Cambiar a otra categoría desde selector rápido.
+14. Ver detalle.
+15. Consultar por WhatsApp.
+16. Confirmar que se crea pedido.
 
 ## Admin
 
@@ -31,6 +39,13 @@
 16. Revisar métricas.
 17. Limpiar métricas huérfanas si aparece contador.
 18. Eliminar producto de prueba.
+19. Revisar footer público.
+20. Revisar `admin/ofertas`.
+21. Revisar botones con buen espaciado.
+22. Probar eliminar producto/categoría/pedido y confirmar que aparece modal BIANTI, no alert nativo.
+23. Revisar métricas.
+24. Revisar contabilidad.
+25. Confirmar que pedido de prueba `id=6` no quedó como venta real.
 
 ## Responsive
 
