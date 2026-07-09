@@ -85,7 +85,7 @@ final class EventoModel extends BaseSupabaseModel
     public function productEvents(int $limit = 10000): array
     {
         $limit = max(1, min(5000, $limit));
-        return array_values(array_filter($this->all(['select' => 'id,type,payload,created_at', 'order' => 'created_at.desc', 'limit' => $limit]), fn($event) => $this->productIdFromEvent($event) !== ''));
+        return Cache::remember("bianti_eventos_product_events_{$limit}", 30, fn() => array_values(array_filter($this->all(['select' => 'id,type,payload,created_at', 'order' => 'created_at.desc', 'limit' => $limit]), fn($event) => $this->productIdFromEvent($event) !== '')));
     }
 
     public function orphanProductEventIds(array $existingProductIds): array

@@ -2,6 +2,7 @@
 namespace App\Controllers\Admin;
 
 use App\Core\Controller;
+use App\Core\Performance;
 use App\Models\CategoriaModel;
 use App\Models\EventoModel;
 use App\Models\ProductoModel;
@@ -11,10 +12,18 @@ final class Estadisticas extends Controller
     public function index(): void
     {
         $this->requireAuth();
-        $productos = (new ProductoModel())->admin(['limit' => 120]);
+        $requestStart = microtime(true);
+        $start = microtime(true);
+        $productos = (new ProductoModel())->metricRows(200);
+        Performance::measure('admin estadisticas productos livianos', $start);
         $catModel = new CategoriaModel();
+        $start = microtime(true);
         $categorias = $catModel->normalize($catModel->ordered(false));
-        $eventos = (new EventoModel())->recent(1000);
+        Performance::measure('admin estadisticas categorias', $start);
+        $start = microtime(true);
+        $eventos = (new EventoModel())->recent(600);
+        Performance::measure('admin estadisticas eventos', $start);
+        Performance::measure('admin estadisticas total', $requestStart);
         $this->view('admin/estadisticas/index', compact('productos', 'categorias', 'eventos'), 'layouts/admin');
     }
 

@@ -17,8 +17,35 @@ final class ProductoModel extends BaseSupabaseModel
     public function admin(array $filters = []): array
     {
         $limit = max(1, min(200, (int)($filters['limit'] ?? 80)));
-        $products = $this->all(['select' => '*', 'order' => 'id.desc', 'limit' => $limit]);
+        $products = $this->adminBaseRows($limit);
         return $this->hydrateAndFilter($products, $filters);
+    }
+
+    public function offerRows(array $filters = []): array
+    {
+        $limit = max(1, min(120, (int)($filters['limit'] ?? 80)));
+        return $this->hydrateAndFilter($this->adminBaseRows($limit), $filters, false);
+    }
+
+    public function dashboardRows(int $limit = 300): array
+    {
+        $limit = max(1, min(500, $limit));
+        return Cache::remember("bianti_productos_dashboard_{$limit}", 30, fn() => array_map(fn($p) => $this->withStockShape($p), $this->all([
+            'select' => '*',
+            'order' => 'id.desc',
+            'limit' => $limit,
+        ])));
+    }
+
+    public function metricRows(int $limit = 160): array
+    {
+        $limit = max(1, min(300, $limit));
+        $rows = Cache::remember("bianti_productos_metric_rows_{$limit}", 30, fn() => $this->all([
+            'select' => '*',
+            'order' => 'id.desc',
+            'limit' => $limit,
+        ]));
+        return $this->applyOffers(array_map(fn($p) => $this->withSummaryShape($p), $rows));
     }
 
     public function byIds(array $ids, bool $visibleOnly = true): array
@@ -164,14 +191,16 @@ final class ProductoModel extends BaseSupabaseModel
         return $rows[0] ?? $p;
     }
 
-    public function hydrateAndFilter(array $products, array $filters = []): array
+    public function hydrateAndFilter(array $products, array $filters = [], bool $includeTalles = true): array
     {
         $productIds = $this->cleanIds(array_map(fn($p) => $p['id'] ?? null, $products));
         if (!$productIds) return [];
+        if (trim((string)($filters['talle'] ?? '')) !== '') $includeTalles = true;
         $idFilter = 'in.(' . implode(',', $productIds) . ')';
-        $rel = $this->sb->select('producto_categorias', ['select' => 'producto_id,categoria_id', 'producto_id' => $idFilter]);
-        $fotos = $this->sb->select('producto_fotos', ['select' => 'producto_id,url,orden', 'producto_id' => $idFilter, 'order' => 'orden.asc,id.asc']);
-        $talles = $this->sb->select('producto_talles', ['select' => 'producto_id,talle', 'producto_id' => $idFilter]);
+        $hash = md5(implode(',', $productIds));
+        $rel = Cache::remember("bianti_producto_rel_{$hash}", 45, fn() => $this->sb->select('producto_categorias', ['select' => 'producto_id,categoria_id', 'producto_id' => $idFilter]));
+        $fotos = Cache::remember("bianti_producto_fotos_{$hash}", 45, fn() => $this->sb->select('producto_fotos', ['select' => 'producto_id,url,orden', 'producto_id' => $idFilter, 'order' => 'orden.asc,id.asc']));
+        $talles = $includeTalles ? Cache::remember("bianti_producto_talles_{$hash}", 45, fn() => $this->sb->select('producto_talles', ['select' => 'producto_id,talle', 'producto_id' => $idFilter])) : [];
         $cats = (new CategoriaModel())->ordered(false);
         $catMap = [];
         foreach ($cats as $c) $catMap[(string)$c['id']] = $c;
@@ -403,6 +432,15 @@ final class ProductoModel extends BaseSupabaseModel
             $params['id'] = 'in.(' . implode(',', array_slice($ids, 0, 300)) . ')';
         }
         return $this->all($params);
+    }
+
+    private function adminBaseRows(int $limit): array
+    {
+        return Cache::remember("bianti_productos_admin_base_{$limit}", 30, fn() => $this->all([
+            'select' => '*',
+            'order' => 'id.desc',
+            'limit' => $limit,
+        ]));
     }
 
     private function cleanIds(array $ids): array

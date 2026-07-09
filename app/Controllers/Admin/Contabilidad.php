@@ -2,6 +2,7 @@
 namespace App\Controllers\Admin;
 
 use App\Core\Controller;
+use App\Core\Performance;
 use App\Models\PedidoModel;
 use App\Models\ProductoModel;
 use App\Models\VentaModel;
@@ -12,11 +13,20 @@ final class Contabilidad extends Controller
     {
         $this->requireAuth();
 
+        $requestStart = microtime(true);
+        $start = microtime(true);
         $productos = (new ProductoModel())->accountingRows();
+        Performance::measure('admin contabilidad productos', $start);
         $ventaModel = new VentaModel();
+        $start = microtime(true);
         $ventas = $ventaModel->ventas();
+        Performance::measure('admin contabilidad ventas', $start);
+        $start = microtime(true);
         $manuales = $ventaModel->manuales();
+        Performance::measure('admin contabilidad manuales', $start);
+        $start = microtime(true);
         $pedidos = (new PedidoModel())->recent();
+        Performance::measure('admin contabilidad pedidos', $start);
 
         $productMap = [];
         $inversionTotal = 0.0;
@@ -52,8 +62,11 @@ final class Contabilidad extends Controller
         }
 
         $periodo = $this->periodoDesdeGet();
+        $start = microtime(true);
         $operacionesFiltradas = array_values(array_filter($operaciones, fn($op) => $this->inPeriod($op['date'], $periodo)));
         $contabilidad = $this->buildAccountingData($operacionesFiltradas, $inversionTotal, $productosSinCosto, $periodo);
+        Performance::measure('admin contabilidad calculos', $start);
+        Performance::measure('admin contabilidad total', $requestStart);
 
         $this->view('admin/contabilidad/index', compact('productos', 'ventas', 'manuales', 'pedidos', 'periodo', 'contabilidad'), 'layouts/admin');
     }

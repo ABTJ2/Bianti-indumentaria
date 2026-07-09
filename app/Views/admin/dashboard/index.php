@@ -1,27 +1,4 @@
-<?php
-$productMap = [];
-foreach ($productos as $p) $productMap[(string)($p['id'] ?? '')] = $p;
-$eventProductId = function($e) {
-  $payload = is_array($e['payload'] ?? null) ? $e['payload'] : json_decode((string)($e['payload'] ?? '{}'), true);
-  if (!is_array($payload)) return '';
-  return (string)($payload['producto_id'] ?? $payload['id_producto'] ?? $payload['product_id'] ?? ((in_array(($e['type'] ?? ''), ['view_product','click_whatsapp'], true)) ? ($payload['id'] ?? '') : ''));
-};
-$views = array_filter($eventos, fn($e) => ($e['type'] ?? '') === 'view_product' && isset($productMap[$eventProductId($e)]));
-$wa = array_filter($eventos, fn($e) => ($e['type'] ?? '') === 'click_whatsapp' && isset($productMap[$eventProductId($e)]));
-$top = [];
-foreach ($views as $e) {
-  $id = $eventProductId($e);
-  if ($id !== '') $top[$id] = ($top[$id] ?? 0) + 1;
-}
-arsort($top);
-$topId = array_key_first($top);
-$topProduct = $topId ? ($productMap[$topId] ?? null) : null;
-$vendidos = count(array_filter($pedidos ?? [], fn($p) => ($p['estado'] ?? '') === 'vendido'));
-$conversion = count($views) ? round((count($wa) / count($views)) * 100, 1) : 0;
-$ingresos = 0;
-foreach (($pedidos ?? []) as $pedido) if (($pedido['estado'] ?? '') === 'vendido') $ingresos += (float)($pedido['vendido_total'] ?? $pedido['vendido_precio_final'] ?? $pedido['producto_precio'] ?? 0);
-$noVendidos = count(array_filter($pedidos ?? [], fn($p) => ($p['estado'] ?? '') === 'no_vendido'));
-?>
+<?php $topProduct = $stats['topProduct'] ?? null; ?>
 <section class="page-head">
   <div><h1>Panel principal</h1><p>Centro de control del catálogo y flujo de ventas.</p></div>
   <div class="dashboard-actions">
@@ -32,16 +9,16 @@ $noVendidos = count(array_filter($pedidos ?? [], fn($p) => ($p['estado'] ?? '') 
 </section>
 <div class="kpi-grid">
   <div class="kpi"><span>Producto más consultado</span><strong><?= e($topProduct['titulo'] ?? 'Sin datos') ?></strong></div>
-  <div class="kpi"><span>Ventas confirmadas</span><strong><?= e($vendidos) ?></strong></div>
-  <div class="kpi"><span>Tasa de conversión</span><strong><?= e($conversion) ?>%</strong></div>
-  <div class="kpi"><span>Consultas WhatsApp en revisión</span><strong><?= e(count($wa)) ?></strong></div>
-  <div class="kpi"><span>Ingresos del periodo</span><strong><?= money_ar($ingresos) ?></strong></div>
-  <div class="kpi"><span>No vendidos</span><strong><?= e($noVendidos) ?></strong></div>
+  <div class="kpi"><span>Ventas confirmadas</span><strong><?= e($stats['vendidos'] ?? 0) ?></strong></div>
+  <div class="kpi"><span>Tasa de conversión</span><strong><?= e($stats['conversion'] ?? 0) ?>%</strong></div>
+  <div class="kpi"><span>Consultas WhatsApp en revisión</span><strong><?= e($stats['wa'] ?? 0) ?></strong></div>
+  <div class="kpi"><span>Ingresos del periodo</span><strong><?= money_ar($stats['ingresos'] ?? 0) ?></strong></div>
+  <div class="kpi"><span>No vendidos</span><strong><?= e($stats['noVendidos'] ?? 0) ?></strong></div>
   <div class="kpi"><span>Productos visibles</span><strong><?= e($stats['visibles']) ?></strong></div>
   <div class="kpi"><span>Productos cargados</span><strong><?= e($stats['productos']) ?></strong></div>
 </div>
 <div class="dashboard-columns">
-  <section class="panel"><h2>Flujo de ventas</h2><div class="stat-list"><div class="stat-line"><span>Consultas recibidas</span><strong><?= e($stats['pedidos']) ?></strong></div><div class="stat-line"><span>WhatsApp desde catálogo</span><strong><?= e(count($wa)) ?></strong></div><div class="stat-line"><span>Pedidos vendidos</span><strong><?= e($vendidos) ?></strong></div></div></section>
+  <section class="panel"><h2>Flujo de ventas</h2><div class="stat-list"><div class="stat-line"><span>Consultas recibidas</span><strong><?= e($stats['pedidos']) ?></strong></div><div class="stat-line"><span>WhatsApp desde catálogo</span><strong><?= e($stats['wa'] ?? 0) ?></strong></div><div class="stat-line"><span>Pedidos vendidos</span><strong><?= e($stats['vendidos'] ?? 0) ?></strong></div></div></section>
   <section class="panel"><h2>Operación rápida</h2><div class="quick-grid"><a href="<?= site_url('admin/productos') ?>">Gestionar productos</a><a href="<?= site_url('admin/importar-productos') ?>">Importar productos</a><a href="<?= site_url('admin/ofertas') ?>">Crear ofertas</a><a href="<?= site_url('admin/metricas') ?>">Ver métricas</a></div></section>
 </div>
 <?php if(!empty($hasStock)): ?>

@@ -2,6 +2,7 @@
 namespace App\Controllers\Admin;
 
 use App\Core\Controller;
+use App\Core\Performance;
 use App\Models\CategoriaModel;
 use App\Models\ProductoModel;
 
@@ -10,13 +11,19 @@ final class Productos extends Controller
     public function index(): void
     {
         $this->requireAuth();
+        $requestStart = microtime(true);
         try {
             $model = new ProductoModel();
+            $start = microtime(true);
             $productos = $model->admin($_GET);
+            Performance::measure('admin productos productos', $start);
             $stockColumns = $model->stockColumns();
             $hasStock = !empty($stockColumns);
+            $start = microtime(true);
             $catModel = new CategoriaModel();
             $categorias = $catModel->normalize($catModel->ordered(false));
+            Performance::measure('admin productos categorias', $start);
+            Performance::measure('admin productos total', $requestStart);
             $this->view('admin/productos/index', compact('productos', 'categorias', 'hasStock', 'stockColumns'), 'layouts/admin');
         } catch (\Throwable $e) {
             $error = $e->getMessage();

@@ -2,6 +2,7 @@
 namespace App\Controllers\Admin;
 
 use App\Core\Controller;
+use App\Core\Performance;
 use App\Models\EventoModel;
 use App\Models\ProductoModel;
 
@@ -10,11 +11,19 @@ final class Metricas extends Controller
     public function index(): void
     {
         $this->requireAuth();
+        $requestStart = microtime(true);
         $eventModel = new EventoModel();
         $productModel = new ProductoModel();
-        $eventos = $eventModel->recent(1000);
-        $productos = $productModel->admin(['limit' => 120]);
+        $start = microtime(true);
+        $eventos = $eventModel->recent(600);
+        Performance::measure('admin metricas eventos', $start);
+        $start = microtime(true);
+        $productos = $productModel->metricRows(160);
+        Performance::measure('admin metricas productos livianos', $start);
+        $start = microtime(true);
         $orphanCount = count($eventModel->orphanProductEventIds($productModel->existingIds()));
+        Performance::measure('admin metricas huerfanas', $start);
+        Performance::measure('admin metricas total', $requestStart);
         $this->view('admin/metricas/index', compact('eventos', 'productos', 'orphanCount'), 'layouts/admin');
     }
 
