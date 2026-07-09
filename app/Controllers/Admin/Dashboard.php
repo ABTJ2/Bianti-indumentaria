@@ -15,19 +15,38 @@ final class Dashboard extends Controller
         $requestStart = microtime(true);
         $productModel = new ProductoModel();
         $start = microtime(true);
-        $productos = $productModel->dashboardRows(300);
+        $productos = $productModel->dashboardRows(120);
         Performance::measure('admin dashboard productos livianos', $start);
-        $stockAlerts = array_slice(array_values(array_filter($productos, fn($p) => !empty($p['stock_bajo']))), 0, 12);
-        $hasStock = !empty($productModel->stockColumns());
-        $start = microtime(true);
-        $eventos = (new EventoModel())->recent(300);
-        Performance::measure('admin dashboard eventos', $start);
-        $start = microtime(true);
-        $pedidos = (new PedidoModel())->recent();
-        Performance::measure('admin dashboard pedidos', $start);
+        $stockAlerts = [];
+        $hasStock = false;
+        $eventos = [];
+        $pedidos = [];
+        $stats = [
+            'productos' => count($productos),
+            'visibles' => count(array_filter($productos, fn($p) => !empty($p['visible']))),
+            'pedidos' => null,
+            'views' => null,
+            'wa' => null,
+            'topProduct' => null,
+            'vendidos' => null,
+            'conversion' => null,
+            'ingresos' => null,
+            'noVendidos' => null,
+        ];
+        Performance::measure('admin dashboard controlador total', $requestStart);
+        $this->view('admin/dashboard/index', compact('stats', 'productos', 'eventos', 'pedidos', 'stockAlerts', 'hasStock'), 'layouts/admin');
+    }
+
+    public function resumenActividad(): void
+    {
+        $this->requireAuth();
+        $productModel = new ProductoModel();
+        $productos = $productModel->dashboardRows(120);
+        $eventModel = new EventoModel();
+        $eventos = $eventModel->recent(180);
         $productMap = [];
         foreach ($productos as $p) $productMap[(string)($p['id'] ?? '')] = $p;
-        $eventModel = new EventoModel();
+
         $views = 0;
         $wa = 0;
         $top = [];
@@ -44,6 +63,18 @@ final class Dashboard extends Controller
         arsort($top);
         $topId = array_key_first($top);
         $topProduct = $topId ? ($productMap[$topId] ?? null) : null;
+
+        $this->json([
+            'topProduct' => $topProduct['titulo'] ?? 'Sin datos',
+            'wa' => $wa,
+            'conversion' => ($views ? round(($wa / $views) * 100, 1) : 0) . '%',
+        ]);
+    }
+
+    public function resumenVentas(): void
+    {
+        $this->requireAuth();
+        $pedidos = (new PedidoModel())->recent();
         $vendidos = 0;
         $ingresos = 0;
         $noVendidos = 0;
@@ -55,19 +86,12 @@ final class Dashboard extends Controller
             }
             if ($estado === 'no_vendido') $noVendidos++;
         }
-        $stats = [
-            'productos' => count($productos),
-            'visibles' => count(array_filter($productos, fn($p) => !empty($p['visible']))),
+
+        $this->json([
             'pedidos' => count($pedidos),
-            'views' => $views,
-            'wa' => $wa,
-            'topProduct' => $topProduct,
             'vendidos' => $vendidos,
-            'conversion' => $views ? round(($wa / $views) * 100, 1) : 0,
-            'ingresos' => $ingresos,
+            'ingresos' => money_ar($ingresos),
             'noVendidos' => $noVendidos,
-        ];
-        Performance::measure('admin dashboard controlador total', $requestStart);
-        $this->view('admin/dashboard/index', compact('stats', 'productos', 'eventos', 'pedidos', 'stockAlerts', 'hasStock'), 'layouts/admin');
+        ]);
     }
 }

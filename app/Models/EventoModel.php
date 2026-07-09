@@ -29,7 +29,7 @@ final class EventoModel extends BaseSupabaseModel
             'payload' => $payload,
             'created_at' => date('c'),
         ]);
-        Cache::forgetPrefix('bianti_');
+        Cache::forgetPrefix('bianti_eventos_');
         return $result;
     }
 

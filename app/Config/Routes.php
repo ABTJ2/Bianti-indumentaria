@@ -14,6 +14,8 @@ $router->post('admin/login', 'Auth::attempt');
 $router->get('admin/logout', 'Auth::logout');
 
 $router->get('admin/dashboard', 'Admin\\Dashboard::index');
+$router->get('admin/dashboard/resumen-actividad', 'Admin\\Dashboard::resumenActividad');
+$router->get('admin/dashboard/resumen-ventas', 'Admin\\Dashboard::resumenVentas');
 $router->get('admin/productos', 'Admin\\Productos::index');
 $router->get('admin/productos/nuevo', 'Admin\\Productos::nuevo');
 $router->post('admin/productos/guardar', 'Admin\\Productos::crear');

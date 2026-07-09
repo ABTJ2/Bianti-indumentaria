@@ -15,14 +15,17 @@ final class Metricas extends Controller
         $eventModel = new EventoModel();
         $productModel = new ProductoModel();
         $start = microtime(true);
-        $eventos = $eventModel->recent(600);
+        $eventos = $eventModel->recent(300);
         Performance::measure('admin metricas eventos', $start);
         $start = microtime(true);
-        $productos = $productModel->metricRows(160);
+        $productos = $productModel->metricRows(120);
         Performance::measure('admin metricas productos livianos', $start);
-        $start = microtime(true);
-        $orphanCount = count($eventModel->orphanProductEventIds($productModel->existingIds()));
-        Performance::measure('admin metricas huerfanas', $start);
+        $orphanCount = null;
+        if (($_GET['check_orphans'] ?? '') === '1') {
+            $start = microtime(true);
+            $orphanCount = count($eventModel->orphanProductEventIds($productModel->existingIds()));
+            Performance::measure('admin metricas huerfanas', $start);
+        }
         Performance::measure('admin metricas total', $requestStart);
         $this->view('admin/metricas/index', compact('eventos', 'productos', 'orphanCount'), 'layouts/admin');
     }
