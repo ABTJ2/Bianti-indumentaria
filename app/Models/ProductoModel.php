@@ -16,21 +16,23 @@ final class ProductoModel extends BaseSupabaseModel
 
     public function admin(array $filters = []): array
     {
-        $limit = max(1, min(200, (int)($filters['limit'] ?? 80)));
+        $limit = max(1, min(200, (int)($filters['limit'] ?? 40)));
         $products = $this->adminBaseRows($limit);
-        return $this->hydrateAndFilter($products, $filters);
+        $needsPhotoFilter = trim((string)($filters['foto'] ?? '')) !== '';
+        return $this->hydrateAndFilter($products, $filters, true, $needsPhotoFilter, false);
     }
 
     public function offerRows(array $filters = []): array
     {
-        $limit = max(1, min(120, (int)($filters['limit'] ?? 80)));
-        return $this->hydrateAndFilter($this->adminBaseRows($limit), $filters, false);
+        $limit = max(1, min(120, (int)($filters['limit'] ?? 40)));
+        $needsPhotoFilter = trim((string)($filters['foto'] ?? '')) !== '';
+        return $this->hydrateAndFilter($this->adminBaseRows($limit), $filters, false, $needsPhotoFilter, false);
     }
 
     public function dashboardRows(int $limit = 300): array
     {
         $limit = max(1, min(500, $limit));
-        return Cache::remember("bianti_productos_dashboard_{$limit}", 30, fn() => array_map(fn($p) => $this->withStockShape($p), $this->all([
+        return Cache::remember("bianti_productos_dashboard_{$limit}", 30, fn() => array_map(fn($p) => $this->withSummaryShape($p, false), $this->all([
             'select' => '*',
             'order' => 'id.desc',
             'limit' => $limit,
@@ -45,7 +47,7 @@ final class ProductoModel extends BaseSupabaseModel
             'order' => 'id.desc',
             'limit' => $limit,
         ]));
-        return $this->applyOffers(array_map(fn($p) => $this->withSummaryShape($p), $rows));
+        return $this->applyOffers(array_map(fn($p) => $this->withSummaryShape($p, false), $rows));
     }
 
     public function byIds(array $ids, bool $visibleOnly = true): array
@@ -135,8 +137,10 @@ final class ProductoModel extends BaseSupabaseModel
         static $columns = null;
         if (is_array($columns)) return $columns;
         try {
-            $rows = $this->all(['select' => '*', 'limit' => 1]);
-            $columns = $rows ? array_keys($rows[0]) : [];
+            $columns = Cache::remember('bianti_productos_columns', 300, function () {
+                $rows = $this->all(['select' => '*', 'limit' => 1]);
+                return $rows ? array_keys($rows[0]) : [];
+            });
             return $columns;
         } catch (\Throwable) {
             $columns = [];
@@ -191,7 +195,7 @@ final class ProductoModel extends BaseSupabaseModel
         return $rows[0] ?? $p;
     }
 
-    public function hydrateAndFilter(array $products, array $filters = [], bool $includeTalles = true): array
+    public function hydrateAndFilter(array $products, array $filters = [], bool $includeTalles = true, bool $includeAllFotos = true, bool $includeStock = true): array
     {
         $productIds = $this->cleanIds(array_map(fn($p) => $p['id'] ?? null, $products));
         if (!$productIds) return [];
@@ -199,7 +203,12 @@ final class ProductoModel extends BaseSupabaseModel
         $idFilter = 'in.(' . implode(',', $productIds) . ')';
         $hash = md5(implode(',', $productIds));
         $rel = Cache::remember("bianti_producto_rel_{$hash}", 45, fn() => $this->sb->select('producto_categorias', ['select' => 'producto_id,categoria_id', 'producto_id' => $idFilter]));
-        $fotos = Cache::remember("bianti_producto_fotos_{$hash}", 45, fn() => $this->sb->select('producto_fotos', ['select' => 'producto_id,url,orden', 'producto_id' => $idFilter, 'order' => 'orden.asc,id.asc']));
+        $photoIds = $includeAllFotos ? $productIds : $this->productIdsWithoutCover($products);
+        $photoHash = md5(implode(',', $photoIds));
+        $fotos = $photoIds ? Cache::remember("bianti_producto_fotos_{$photoHash}", 45, function () use ($photoIds) {
+            $photoFilter = 'in.(' . implode(',', $photoIds) . ')';
+            return $this->sb->select('producto_fotos', ['select' => 'producto_id,url,orden', 'producto_id' => $photoFilter, 'order' => 'orden.asc,id.asc']);
+        }) : [];
         $talles = $includeTalles ? Cache::remember("bianti_producto_talles_{$hash}", 45, fn() => $this->sb->select('producto_talles', ['select' => 'producto_id,talle', 'producto_id' => $idFilter])) : [];
         $cats = (new CategoriaModel())->ordered(false);
         $catMap = [];
@@ -231,7 +240,11 @@ final class ProductoModel extends BaseSupabaseModel
             $p['fotos'] = $fotoBy[$pid] ?? [];
             $p['talles'] = array_values(array_unique(array_filter($talleBy[$pid] ?? [])));
             $p['portada'] = $this->cover($p);
-            $p = $this->withStockShape($p);
+            if ($includeStock) {
+                $p = $this->withStockShape($p);
+            } else {
+                $p['stock_soportado'] = false;
+            }
             $out[] = $p;
         }
         $out = $this->applyOffers($out);
@@ -443,6 +456,11 @@ final class ProductoModel extends BaseSupabaseModel
         ]));
     }
 
+    private function productIdsWithoutCover(array $products): array
+    {
+        return $this->cleanIds(array_map(fn($p) => $this->cover($p) === '' ? ($p['id'] ?? null) : null, $products));
+    }
+
     private function cleanIds(array $ids): array
     {
         $ids = array_values(array_unique(array_filter(array_map('intval', $ids), fn($id) => $id > 0)));
@@ -456,13 +474,17 @@ final class ProductoModel extends BaseSupabaseModel
         return $values;
     }
 
-    private function withSummaryShape(array $p): array
+    private function withSummaryShape(array $p, bool $includeStock = true): array
     {
         $p['categorias_ids'] = [];
         $p['categorias'] = [];
         $p['fotos'] = [];
         $p['talles'] = [];
         $p['portada'] = $this->cover($p);
+        if (!$includeStock) {
+            $p['stock_soportado'] = false;
+            return $p;
+        }
         return $this->withStockShape($p);
     }
 

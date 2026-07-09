@@ -7,6 +7,7 @@
   <select name="disponible"><option value="">Todas las disponibilidades</option><option value="1" <?= ($_GET['disponible']??'')==='1'?'selected':'' ?>>Disponibles</option><option value="0" <?= ($_GET['disponible']??'')==='0'?'selected':'' ?>>No disponibles</option></select>
   <select name="foto"><option value="">Con y sin foto</option><option value="1" <?= ($_GET['foto']??'')==='1'?'selected':'' ?>>Con foto</option><option value="0" <?= ($_GET['foto']??'')==='0'?'selected':'' ?>>Sin foto</option></select>
   <select name="sort"><option value="recientes">Más recientes</option><option value="precio_asc" <?= ($_GET['sort']??'')==='precio_asc'?'selected':'' ?>>Precio menor</option><option value="precio_desc" <?= ($_GET['sort']??'')==='precio_desc'?'selected':'' ?>>Precio mayor</option><option value="titulo_asc" <?= ($_GET['sort']??'')==='titulo_asc'?'selected':'' ?>>Nombre A-Z</option></select>
+  <select name="limit"><?php foreach([40,80,120,200] as $limit): ?><option value="<?= e($limit) ?>" <?= (string)($_GET['limit']??'40')===(string)$limit?'selected':'' ?>><?= e($limit) ?> productos</option><?php endforeach; ?></select>
   <button class="btn primary">Filtrar</button><a class="btn outline" href="<?= site_url('admin/productos') ?>">Limpiar</a>
 </form>
 <div class="panel">

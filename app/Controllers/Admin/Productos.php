@@ -17,8 +17,8 @@ final class Productos extends Controller
             $start = microtime(true);
             $productos = $model->admin($_GET);
             Performance::measure('admin productos productos', $start);
-            $stockColumns = $model->stockColumns();
-            $hasStock = !empty($stockColumns);
+            $stockColumns = [];
+            $hasStock = false;
             $start = microtime(true);
             $catModel = new CategoriaModel();
             $categorias = $catModel->normalize($catModel->ordered(false));
