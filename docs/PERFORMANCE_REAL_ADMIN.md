@@ -62,14 +62,27 @@ Medición posterior al separar ofertas de la hidratación completa de productos:
 | `/admin/estadisticas` | 1.29s | 0.67s |
 | `/admin/contabilidad` | 2.04s | ~0.00s |
 
+Medición final con cache limpio antes de cada pantalla:
+
+| Pantalla | Antes primera carga | Después primera carga | Cache caliente | Cambio aplicado |
+|---|---:|---:|---:|---|
+| `/admin/productos` | 3.8s a 4.8s | 2.85s | 0.03s | 40 productos por defecto, sin probe de stock, fotos solo si falta portada, relaciones por IDs |
+| `/admin/dashboard` | 2.6s a 2.7s | 0.67s | 0.02s | HTML inicial liviano; actividad y ventas cargan por endpoints diferidos |
+| `/admin/metricas` | 3.2s a 3.4s | 1.34s | 0.02s | Eventos/productos limitados; huérfanas bajo demanda |
+| `/admin/ofertas` | 3.2s a 3.3s | 2.20s | 0.03s | Sin talles y con base admin cacheada |
+| `/admin/contabilidad` | 1.9s a 2.0s | 2.76s | 0.02s | Sin cambios funcionales en esta pasada; depende de ventas/pedidos/productos reales |
+| `/public/catalogo` | 5.2s a 6.8s | 5.57s | 1.34s | Eventos ya no invalidan cache completo de productos/categorías |
+
 ## Mejoras aplicadas
 - Dashboard dejó de usar `ProductoModel::admin()` hidratado para KPIs.
 - Dashboard dejó de llamar `lowStockProducts()` como segunda carga completa de productos.
-- Dashboard calcula KPIs, top, ventas y stock desde filas livianas.
+- Dashboard inicial carga solo filas livianas de productos; actividad y ventas se completan por endpoints JSON chicos.
 - Métricas y estadísticas usan `ProductoModel::metricRows()` en lugar de productos hidratados completos.
+- Métricas no calculan huérfanas en cada carga; se revisan bajo demanda con `?check_orphans=1`.
 - `EventoModel::productEvents()` queda cacheado 30s para reducir costo de huérfanas.
+- `EventoModel::log()` invalida solo caches de eventos para que una visita pública no vacíe caches de productos/admin.
 - `ProductoModel::hydrateAndFilter()` cachea relaciones por lote (`producto_categorias`, `producto_fotos`, `producto_talles`) 45s.
-- `ProductoModel::admin()` cachea la base de productos admin 30s.
+- `ProductoModel::admin()` carga 40 productos por defecto y cachea la base de productos admin 30s.
 - `ProductoModel::offerRows()` evita cargar talles en ofertas porque esa pantalla no los usa.
 - `SupabaseService` tiene `CURLOPT_CONNECTTIMEOUT = 5` y `CURLOPT_TIMEOUT = 15` para requests REST.
 - Se agregaron mediciones `Performance::measure()` en dashboard, productos, métricas, estadísticas y contabilidad. Solo se registran si `DEBUG_PERFORMANCE=true`.
@@ -78,6 +91,6 @@ Medición posterior al separar ofertas de la hidratación completa de productos:
 - No se cambió Supabase schema ni DER.
 - No se tocaron credenciales.
 - No se agregaron librerías de frontend.
-- El cache se invalida con `Cache::forgetPrefix('bianti_')` en altas/ediciones/eliminaciones y cambios relevantes ya existentes.
+- El cache de productos se invalida con `Cache::forgetPrefix('bianti_')` en altas/ediciones/eliminaciones y cambios relevantes ya existentes. Los eventos de navegación pública invalidan solo `bianti_eventos_`.
 - No se detectaron recursos pesados nuevos en contabilidad; los gráficos son HTML/CSS.
-- `/admin/productos` conserva la carga completa de categorías, fotos y talles porque la pantalla los muestra. Reducir más el primer hit requeriría paginación real, menos filas por defecto o carga diferida de talles.
+- `/admin/productos` conserva categorías y talles porque la pantalla los muestra. Reducir más el primer hit requeriría carga diferida de talles/categorías o paginación con offsets reales.
