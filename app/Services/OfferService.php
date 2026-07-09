@@ -1,6 +1,8 @@
 <?php
 namespace App\Services;
 
+use App\Core\Cache;
+
 final class OfferService
 {
     private string $file;
@@ -39,10 +41,12 @@ final class OfferService
         $all = array_values(array_filter($all, fn($o) => (string)($o['producto_id'] ?? '') !== $pid));
         $all[] = $offer;
         file_put_contents($this->file, json_encode($all, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        Cache::forgetPrefix('bianti_');
     }
     public function delete(string $productoId): void
     {
         $all = array_values(array_filter($this->all(), fn($o) => (string)($o['producto_id'] ?? '') !== (string)$productoId));
         file_put_contents($this->file, json_encode($all, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        Cache::forgetPrefix('bianti_');
     }
 }

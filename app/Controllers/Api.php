@@ -36,7 +36,10 @@ final class Api extends Controller
         $body = json_decode(file_get_contents('php://input') ?: '{}', true) ?: [];
         $productoId = (int)($body['producto_id'] ?? $body['id'] ?? 0);
         try {
-            if ($productoId <= 0) throw new \InvalidArgumentException('Falta producto_id.');
+            if ($productoId <= 0) {
+                $this->json(['ok' => false, 'error' => 'producto_id es obligatorio'], 422);
+                return;
+            }
             $producto = (new ProductoModel())->hydratedFind($productoId);
             if (!$producto) throw new \RuntimeException('Producto inexistente.');
             $created = (new PedidoModel())->createConsulta($producto, trim((string)($body['mensaje'] ?? '')));

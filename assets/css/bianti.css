@@ -1251,3 +1251,11 @@ html.modal-open{overflow:hidden}
   .heroEditorial::after{right:170px; opacity:.45}
   .heroWatermark{right:24px}
 }
+
+
+/* RESET_ESTETICA_PRIVATEDOT */
+.catalogBenefits--three{grid-template-columns:repeat(3,minmax(0,1fr));}
+.catalogBenefits--three div:last-child{border-right:0;}
+.footerBottom .privateDot{font-size:18px;line-height:1;color:#caa3e2;text-decoration:none;opacity:.55;padding:4px 8px;border-radius:999px;}
+.footerBottom .privateDot:hover{opacity:1;background:rgba(202,163,226,.12);}
+@media(max-width:900px){.catalogBenefits--three{grid-template-columns:1fr}.catalogBenefits--three div{border-right:0!important;border-bottom:1px solid var(--line-soft)}}
