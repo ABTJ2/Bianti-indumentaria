@@ -106,3 +106,25 @@
 .money-chart i { width: 46px; min-height: 24px; border-radius: 12px 12px 4px 4px; background: var(--color-primary); }
 .money-chart i.green { background: var(--color-success); }
 .money-chart i.red { background: var(--color-danger); }
+.alert.warn { background: #fff7e8; color: #8a4a05; border: 1px solid #f0d3a3; }
+.accounting-filter { grid-template-columns: minmax(170px, 1fr) minmax(150px, 1fr) minmax(150px, 1fr) auto auto; }
+.accounting-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 16px 0; }
+.accounting-chart h2 { margin: 0 0 14px; color: var(--color-text); font-size: 18px; }
+.accounting-bars { display: grid; gap: 12px; }
+.accounting-bar { display: grid; gap: 6px; }
+.accounting-bar__head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; color: var(--color-text); font-size: 13px; }
+.accounting-bar__head span { min-width: 0; overflow-wrap: anywhere; font-weight: 800; }
+.accounting-bar__head small { display: block; margin-top: 2px; color: var(--color-muted); font-weight: 700; }
+.accounting-bar__head strong { white-space: nowrap; }
+.accounting-bar__track { height: 12px; overflow: hidden; border-radius: 999px; background: #eee7f2; }
+.accounting-bar__track i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--color-primary), #a46bd1); }
+.investment-split { display: grid; gap: 14px; }
+.investment-split > div { display: grid; gap: 6px; }
+.investment-split span { color: var(--color-muted); font-weight: 800; }
+.investment-split strong { color: var(--color-text); font-size: 18px; }
+.investment-split i { display: block; height: 14px; min-width: 4px; border-radius: 999px; }
+.investment-split i.recovered { background: var(--color-success); }
+.investment-split i.pending { background: var(--color-warning); }
+.empty-accounting { text-align: center; padding: 28px; }
+.empty-accounting h2 { margin: 0 0 8px; color: var(--color-text); }
+.empty-accounting p { margin: 0; color: var(--color-muted); font-weight: 700; }
