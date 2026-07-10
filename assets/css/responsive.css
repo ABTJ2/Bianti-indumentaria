@@ -3,8 +3,13 @@
   .public-nav .contact-link { display: none; }
   .topbar-in { min-height: 64px; }
   .btn-whatsapp { display: none; }
-  .search-panel { grid-template-columns: 1fr; }
-  .quick-categories { display: grid; grid-template-columns: 1fr; }
+  .catalog-body .catalog-container { scroll-margin-top: 76px; }
+  .catalog-body .search-panel, .catalog-body .quick-categories { display: none; }
+  .catalog-body .mobile-catalog-bar { position: static; top: auto; z-index: auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 0 0 18px; padding: 10px; border: 1px solid var(--color-border); border-radius: 16px; background: #fff; box-shadow: var(--shadow-soft); backdrop-filter: none; }
+  .catalog-body .mobile-catalog-bar select, .catalog-body .mobile-search-input { grid-column: 1 / -1; width: 100%; min-height: 40px; border-radius: 13px; border: 1px solid #d9cfe2; background: #fff; color: #16131a; }
+  .catalog-body .mobile-catalog-bar select { font-weight: 800; }
+  .catalog-body .mobile-bar-btn { min-height: 38px; padding: 8px 10px; }
+  .catalog-body .mobile-current { grid-column: 1 / -1; }
   .quick-categories select { max-width: none; }
   .section-head { display: block; }
   .hero-copy { min-height: 330px; }
@@ -59,7 +64,7 @@
   .pageHead { display: grid; grid-template-columns: 1fr; }
   .pageHead h1 { font-size: 24px; }
   .topbar-title strong { font-size: 13px; }
-  .topbar-title span { font-size: 10px; }
+  .topbar-title span { font-size: var(--admin-font-tiny); }
   .admin-top .btn { min-height: 32px; padding-inline: 9px; }
   .toolbar, .toolbarCompact, .twoCol, .dataGrid, .fieldGrid, .checkGrid, .quickGrid, .flowGrid, .fileSummary { grid-template-columns: 1fr; }
   .kpiGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -69,12 +74,12 @@
 
 @media (max-width: 620px) {
   html, body { max-width: 100%; overflow-x: hidden; }
-  .admin-body { font-size: 12px; }
+  .admin-body { font-size: var(--admin-font-base); }
   .admin-content { padding: 10px 10px 22px; }
   .admin-module-host { gap: 10px; }
   .kpiGrid { grid-template-columns: 1fr; gap: 8px; }
   .kpiCard { min-height: 70px; padding: 11px; }
-  .kpiCard strong { font-size: 19px; }
+  .kpiCard strong { font-size: 20px; }
   .toolbar, .toolbarCompact { padding: 9px; gap: 7px; }
   .btn, .btnPrimary, .btnDanger { width: 100%; min-height: 38px; }
   .actionsRow { display: grid; grid-template-columns: 1fr; width: 100%; }
@@ -85,8 +90,8 @@
   .compactTable.mobileCards thead { display: none; }
   .compactTable.mobileCards tbody, .compactTable.mobileCards tr, .compactTable.mobileCards td { display: block; width: 100%; }
   .compactTable.mobileCards tr { padding: 10px; border: 1px solid var(--admin-line); border-radius: 12px; background: #fff; box-shadow: var(--admin-shadow); }
-  .compactTable.mobileCards td { padding: 5px 0; border: 0; font-size: 12px; }
-  .compactTable.mobileCards td::before { content: attr(data-label); display: block; margin-bottom: 2px; color: var(--admin-muted); font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; }
+  .compactTable.mobileCards td { padding: 5px 0; border: 0; font-size: var(--admin-font-table); }
+  .compactTable.mobileCards td::before { content: attr(data-label); display: block; margin-bottom: 2px; color: var(--admin-muted); font-size: var(--admin-font-label); font-weight: 900; text-transform: uppercase; letter-spacing: .04em; }
   .compactTable.mobileCards td:first-child::before, .compactTable.mobileCards td.actionsCell::before { display: none; }
   .compactTable.mobileCards td.actionsCell { white-space: normal; }
   .compactTable.mobileCards .productActionsGrid, .compactTable.mobileCards .categoryActions { display: grid; width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); }

@@ -33,15 +33,6 @@
     </div>
   </header>
 
-  <div class="mobile-catalog-bar" aria-label="Navegación rápida del catálogo">
-    <label class="mobile-category-label" for="mobileCategory">Categoría</label>
-    <select id="mobileCategory"><option value="">Todas las categorías</option></select>
-    <button id="mobileSearch" class="mobile-bar-btn" type="button">Buscar</button>
-    <button id="mobileFilters" class="mobile-bar-btn" type="button" aria-controls="filterDrawer" aria-expanded="false">Filtros</button>
-    <input id="mobileSearchInput" class="mobile-search-input" type="search" placeholder="Buscar producto" autocomplete="off" hidden>
-    <span id="mobileCurrentCategory" class="mobile-current">Todas las categorías</span>
-  </div>
-
   <main>
     <section class="hero-public">
       <div class="container hero-grid">
@@ -63,6 +54,15 @@
     </section>
 
     <section class="catalog-container container" id="catalogo">
+      <div class="mobile-catalog-bar" aria-label="Navegación rápida del catálogo">
+        <label class="mobile-category-label" for="mobileCategory">Categoría</label>
+        <select id="mobileCategory"><option value="">Todas las categorías</option></select>
+        <input id="mobileSearchInput" class="mobile-search-input" type="search" placeholder="Buscar producto" autocomplete="off">
+        <button id="mobileSearch" class="mobile-bar-btn" type="button">Buscar</button>
+        <button id="mobileFilters" class="mobile-bar-btn" type="button" aria-controls="filterDrawer" aria-expanded="false">Filtros</button>
+        <span id="mobileCurrentCategory" class="mobile-current">Todas las categorías</span>
+      </div>
+
       <div class="search-panel">
         <input id="search" type="search" placeholder="Buscar producto por nombre... Ej: pantalón, calza, perfume" autocomplete="off">
         <button id="btnFilters" class="btn btn-outline" type="button" aria-controls="filterDrawer" aria-expanded="false">Filtros</button>

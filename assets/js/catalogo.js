@@ -617,7 +617,18 @@
   els.lightbox?.addEventListener('click', (event) => { if (event.target === els.lightbox) closeLightbox(); });
   els.search?.addEventListener('input', () => { state.query = els.search.value.trim(); syncControls(); renderResults(); });
   els.mobileSearchInput?.addEventListener('input', () => { state.query = els.mobileSearchInput.value.trim(); els.search.value = state.query; renderResults(); });
-  els.mobileSearch?.addEventListener('click', () => { els.mobileSearchInput.hidden = !els.mobileSearchInput.hidden; if (!els.mobileSearchInput.hidden) els.mobileSearchInput.focus({ preventScroll: true }); });
+  els.mobileSearch?.addEventListener('click', () => {
+    if (els.mobileSearchInput?.hidden) {
+      els.mobileSearchInput.hidden = false;
+      els.mobileSearchInput.focus({ preventScroll: true });
+      return;
+    }
+    state.query = els.mobileSearchInput?.value.trim() || '';
+    els.search.value = state.query;
+    syncControls();
+    renderResults(hasActiveFilters());
+    (els.dynamic && !els.dynamic.hidden ? els.dynamic : document.querySelector('[data-static-section]'))?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
   els.quickCategory?.addEventListener('change', () => { state.category = els.quickCategory.value; state.talle = ''; syncControls(); updateTalleOptions(); renderCatalogMenu(); if (state.category) logEvent('view_category', null, { categoria_id: state.category }); renderResults(true); });
   els.mobileCategory?.addEventListener('change', () => { state.category = els.mobileCategory.value; state.talle = ''; syncControls(); updateTalleOptions(); renderCatalogMenu(); if (state.category) logEvent('view_category', null, { categoria_id: state.category }); renderResults(!!state.category || !!state.query); });
   els.clearCategory?.addEventListener('click', () => { state.query = ''; state.category = ''; state.talle = ''; state.minPrice = ''; state.maxPrice = ''; state.offer = ''; state.sort = 'recientes'; els.search.value = ''; syncControls(); updateTalleOptions(); renderCatalogMenu(); renderResults(false); });
