@@ -1,204 +1,167 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="description" content="Bianti Indumentaria - Catálogo oficial de ropa y accesorios. Consultá por WhatsApp." />
-  <meta name="theme-color" content="#07070a" />
-  <meta property="og:title" content="Bianti Indumentaria | Catálogo" />
-  <meta property="og:description" content="Catálogo oficial de ropa y accesorios. Consultá por WhatsApp." />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="./assets/img/logo.png" />
-  <link rel="icon" type="image/png" href="./assets/img/logo.png" />
-  <title>Bianti Indumentaria | Catálogo</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="BIANTI Indumentaria - catálogo oficial.">
+  <meta name="theme-color" content="#07070a">
+  <title>BIANTI INDUMENTARIA | Catálogo</title>
+  <link rel="icon" type="image/png" href="./assets/img/logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/css/bianti.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/css/base.css">
+  <link rel="stylesheet" href="./assets/css/catalogo.css">
+  <link rel="stylesheet" href="./assets/css/fixes.css">
+  <link rel="stylesheet" href="./assets/css/responsive.css">
 </head>
-<body>
-  <header class="topbar catalogTopbar">
-    <div class="container topbar__in">
-      <a class="brand" href="./index.html" aria-label="Inicio">
-        <img src="./assets/img/logo.png" alt="Bianti Indumentaria" class="brand__logo" width="38" height="38">
-        <div class="brand__txt">
-          <strong>BIANTI INDUMENTARIA</strong>
-        </div>
+<body class="catalog-body">
+  <header class="topbar catalog-topbar">
+    <div class="container topbar-in">
+      <a class="brand" href="./index.html" aria-label="BIANTI inicio">
+        <img class="brand-logo" src="./assets/img/logo.png" alt="BIANTI" width="42" height="42">
+        <span><strong>BIANTI INDUMENTARIA</strong><small>Catálogo oficial</small></span>
       </a>
-
-      <nav class="nav">
-        <a class="is-active" href="#catalogo">Catálogo</a>
-        <a href="#contacto">Contacto</a>
+      <nav class="public-nav" aria-label="Navegación pública">
+        <div class="catalog-menu" id="catalogMenu">
+          <button class="catalog-nav-btn active" id="catalogMenuBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="catalogMenuList">Catálogo</button>
+          <div class="catalog-menu-list" id="catalogMenuList" role="menu" hidden></div>
+        </div>
+        <a class="contact-link" href="#contacto">Contacto</a>
       </nav>
-
-      <div class="topbar__actions">
-        <a class="btn btn--whatsapp" id="btn-wa-top" href="#" target="_blank" rel="noopener">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-          <span class="btn__label">Consultar por WhatsApp</span>
-        </a>
-      </div>
+      <a class="btn btn-whatsapp" id="btnWaTop" href="#" target="_blank" rel="noopener">Consultar por WhatsApp</a>
     </div>
   </header>
 
+  <div class="mobile-catalog-bar" aria-label="Navegación rápida del catálogo">
+    <label class="mobile-category-label" for="mobileCategory">Categoría</label>
+    <select id="mobileCategory"><option value="">Todas las categorías</option></select>
+    <button id="mobileSearch" class="mobile-bar-btn" type="button">Buscar</button>
+    <button id="mobileFilters" class="mobile-bar-btn" type="button" aria-controls="filterDrawer" aria-expanded="false">Filtros</button>
+    <input id="mobileSearchInput" class="mobile-search-input" type="search" placeholder="Buscar producto" autocomplete="off" hidden>
+    <span id="mobileCurrentCategory" class="mobile-current">Todas las categorías</span>
+  </div>
+
   <main>
-    <section class="hero catalogHero" id="destacados">
-      <div class="container hero__grid">
-        <div class="hero__copy">
+    <section class="hero-public">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="kicker">Catálogo BIANTI</p>
           <h1>Descubrí tu estilo</h1>
-
-          <p class="muted">
-            Prendas seleccionadas para realzar quien sos, todos los días.
-          </p>
-
-          <div class="hero__cta">
-            <a class="btn btn--primary" href="#catalogo">Ver catálogo <span aria-hidden="true">›</span></a>
+          <span>Elegí una categoría, mirá destacados o buscá por nombre.</span>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#catalogo">Ver catálogo</a>
+            <button class="btn btn-outline" id="btnOpenFilters" type="button">Filtros</button>
           </div>
         </div>
-
-        <div class="hero__showcase">
-          <div class="heroEditorial" aria-hidden="true">
-            <div class="editorialFigure editorialFigure--one"></div>
-            <div class="editorialFigure editorialFigure--two"></div>
-            <img src="./assets/img/logo.png" alt="" class="heroWatermark">
-          </div>
-          <div class="carousel" id="carousel">
-            <div class="carousel__track" id="carousel-track"></div>
-            <div class="carousel__dots" id="carousel-dots"></div>
-          </div>
+        <div class="hero-showcase" aria-hidden="true">
+          <div class="hero-orbit one"></div>
+          <div class="hero-orbit two"></div>
+          <img src="./assets/img/logo.png" alt="">
         </div>
       </div>
     </section>
 
-    <section class="section catalogSection" id="catalogo">
-      <div class="container">
-        <div class="catalogControls" aria-label="Filtros del catálogo">
-          <div class="input searchInput">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <input id="q" type="search" placeholder="Buscar productos..." autocomplete="off">
-          </div>
-
-          <select id="cat" class="srSelect" aria-label="Categoría">
-            <option value="">Todas las categorías</option>
-          </select>
-
-          <div class="categoryChips" id="cat-chips" aria-label="Categorías">
-            <button class="catChip is-active" type="button" data-id="">Todas</button>
-          </div>
-        </div>
-
-        <div class="catalogFeature">
-          <div>
-            <span>Colección destacada</span>
-            <h2>Básicos que te definen</h2>
-            <p>Calidad, diseño y comodidad en cada detalle.</p>
-          </div>
-          <a href="#catalogo">Ver colección</a>
-        </div>
-
-        <div class="grid" id="grid"></div>
-
-        <div class="catalogBenefits catalogBenefits--three" aria-label="Beneficios BIANTI">
-          <div><svg viewBox="0 0 24 24"><path d="M12 2l3 6 6 .9-4.5 4.4 1.1 6.2L12 16.5 6.4 19.5l1.1-6.2L3 8.9 9 8z"/></svg><strong>Calidad garantizada</strong><span>Prendas seleccionadas</span></div>
-          <div><svg viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-12.8 7.3L3 21l2.2-5.1A8.5 8.5 0 1 1 21 11.5z"/></svg><strong>Atención personalizada</strong><span>Estamos para ayudarte</span></div>
-          <div><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg><strong>Medios de pago seguros</strong><span>Protegemos tu compra</span></div>
-        </div>
-
-        <div class="empty" id="empty" hidden>
-          <h3>No encontramos resultados</h3>
-          <p class="muted">Probá con otra categoría o buscá diferente.</p>
-        </div>
+    <section class="catalog-container container" id="catalogo">
+      <div class="search-panel">
+        <input id="search" type="search" placeholder="Buscar producto por nombre... Ej: pantalón, calza, perfume" autocomplete="off">
+        <button id="btnFilters" class="btn btn-outline" type="button" aria-controls="filterDrawer" aria-expanded="false">Filtros</button>
       </div>
+
+      <div class="quick-categories" aria-label="Acceso rápido a categorías">
+        <label for="quickCategory">Categorías</label>
+        <select id="quickCategory"><option value="">Elegir categoría</option></select>
+        <button id="clearCategory" class="btn btn-outline" type="button">Ver inicio</button>
+      </div>
+
+      <div class="status hidden" id="catalogStatus"></div>
+
+      <section id="dynamicResults" class="catalog-results" hidden>
+        <div class="section-head"><h2 id="resultsTitle">Productos</h2><span id="resultsCount"></span></div>
+        <div id="products" class="products-grid"></div>
+        <div id="empty" class="empty" hidden>No encontramos productos con esos filtros.</div>
+      </section>
+
+      <div class="catalog-static" data-static-section>
+        <div class="section-head"><h2>Productos destacados</h2><span>Según interés y consultas</span></div>
+        <div class="products-grid static-grid" id="featuredGrid"></div>
+      </div>
+
+      <div class="catalog-static" data-static-section>
+        <div class="section-head"><h2>Ofertas activas</h2><span>Promociones disponibles</span></div>
+        <div class="products-grid static-grid" id="offersGrid"></div>
+      </div>
+
+      <div class="catalog-static" data-static-section>
+        <div class="section-head"><h2>Categorías visuales</h2><span>Entrá directo a una familia de productos</span></div>
+        <div class="category-grid" id="visualCategories"></div>
+      </div>
+
+      <section class="catalog-benefits catalog-static" data-static-section aria-label="Beneficios BIANTI">
+        <article><strong>Calidad garantizada</strong><span>Productos seleccionados para uso diario.</span></article>
+        <article><strong>Atención personalizada</strong><span>Consultanos por WhatsApp antes de comprar.</span></article>
+        <article><strong>Medios de pago seguros</strong><span>Elegí la opción que más te convenga.</span></article>
+      </section>
     </section>
-
-    <footer class="siteFooter" id="contacto">
-      <div class="container footerGrid">
-        <div class="footerBrand">
-          <img src="./assets/img/logo.png" alt="Bianti Indumentaria">
-          <strong>BIANTI<br>INDUMENTARIA</strong>
-          <p>Moda actual para acompañarte siempre. Estilo, calidad y confianza.</p>
-        </div>
-        <div>
-          <h3>Navegación</h3>
-          <a href="#catalogo">Catálogo</a>
-          <a href="#contacto">Contacto</a>
-          <a href="#destacados">Sobre BIANTI</a>
-        </div>
-        <div>
-          <h3>Contacto</h3>
-          <a id="footer-wa-link" href="#" target="_blank" rel="noopener" hidden></a>
-        </div>
-        <div>
-          <h3>Atención</h3>
-          <a class="btn btn--primary" id="btn-wa-bottom" href="#" target="_blank" rel="noopener">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-            Consultar por WhatsApp
-          </a>
-        </div>
-      </div>
-      <div class="container footerBottom">
-        <span>© 2026 BIANTI INDUMENTARIA. Todos los derechos reservados.</span>
-        <a class="privateDot" href="./admin/login.html" aria-label="Panel privado" title="Panel privado">•</a>
-      </div>
-    </footer>
   </main>
 
-  <div class="modal" id="modal" aria-hidden="true">
-    <div class="modal__backdrop" data-close></div>
+  <footer class="site-footer" id="contacto">
+    <div class="container footer-grid">
+      <div class="footer-brand-block"><img src="./assets/img/logo.png" alt="BIANTI"><strong>BIANTI INDUMENTARIA</strong><p>Moda y productos seleccionados con atención personalizada.</p></div>
+      <div class="footer-links"><h3>Navegación</h3><a href="#catalogo">Ver catálogo</a><a href="#top" id="footerTopLink">Volver arriba</a></div>
+      <div class="footer-contact"><h3>Atención</h3><a class="btn btn-primary" id="btnWaBottom" href="#" target="_blank" rel="noopener">Consultar por WhatsApp</a></div>
+      <div class="footer-bottom"><span>© <span id="footerYear">2026</span> BIANTI INDUMENTARIA</span><a class="admin-dot" href="./login/" aria-label="Acceso">·</a></div>
+    </div>
+  </footer>
 
-    <div class="modal__panel" role="dialog" aria-modal="true" aria-label="Detalle de producto">
-      <button class="modal__close" aria-label="Cerrar" data-close>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
+  <div class="filter-drawer" id="filterDrawer" hidden aria-hidden="true">
+    <div class="filter-box" role="dialog" aria-modal="true" aria-label="Filtros del catálogo">
+      <button class="x" type="button" data-close-filter aria-label="Cerrar filtros">×</button>
+      <h2>Filtros</h2>
+      <p class="filter-help">Usá categorías y talles cuando correspondan. Para buscar por nombre usá el buscador.</p>
+      <label>Categoría<select id="filterCategory"><option value="">Todas</option></select></label>
+      <label id="talleFilterWrap">Talle<select id="filterTalle"><option value="">Todos los talles</option></select></label>
+      <label>Precio mínimo<input id="filterMinPrice" type="number" min="0" step="0.01" placeholder="$ mín."></label>
+      <label>Precio máximo<input id="filterMaxPrice" type="number" min="0" step="0.01" placeholder="$ máx."></label>
+      <label>Ofertas<select id="filterOffer"><option value="">Todos</option><option value="activas">Ofertas activas</option></select></label>
+      <label>Orden<select id="sort"><option value="recientes">Más recientes</option><option value="titulo_asc">Nombre A-Z</option><option value="titulo_desc">Nombre Z-A</option><option value="precio_asc">Precio menor a mayor</option><option value="precio_desc">Precio mayor a menor</option></select></label>
+      <div class="filter-actions"><button class="btn btn-primary" id="applyFilters" type="button">Aplicar filtros</button><button class="btn btn-outline" id="clearFilters" type="button">Limpiar</button></div>
+    </div>
+  </div>
 
-      <div class="modal__grid">
-        <div class="gallery">
-          <div class="gallery__main">
-            <img id="m-img" alt="" />
-          </div>
-          <button class="gallery__zoom btn btn--ghost" id="m-zoom" type="button">Ver imagen completa</button>
-          <div class="gallery__thumbs" id="m-thumbs"></div>
+  <div class="product-modal" id="productModal" hidden aria-hidden="true">
+    <div class="product-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modalProductTitle">
+      <button class="product-modal-close" type="button" data-modal-close aria-label="Cerrar detalle">×</button>
+      <div class="product-gallery">
+        <div class="product-gallery-main">
+          <button class="gallery-nav gallery-prev" id="galleryPrev" type="button" aria-label="Imagen anterior">‹</button>
+          <img id="modalProductImage" class="product-modal-image" src="" alt="" hidden>
+          <button class="gallery-nav gallery-next" id="galleryNext" type="button" aria-label="Imagen siguiente">›</button>
         </div>
-
-        <div class="modal__info">
-          <div class="kicker" id="m-cat">—</div>
-          <h3 id="m-title">—</h3>
-          <div class="price" id="m-price">—</div>
-          <p class="muted" id="m-desc"></p>
-
-          <div class="chips">
-            <div class="chips__label">Talles disponibles</div>
-            <div class="chips__row" id="m-sizes"></div>
-          </div>
-
-          <div class="modal__actions">
-            <a class="btn btn--primary" id="m-wa" href="#" target="_blank" rel="noopener">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-              Consultar por WhatsApp
-            </a>
-            <button class="btn btn--ghost" data-close>Cerrar</button>
-          </div>
-
-          <p class="muted tiny">
-            *No mostramos stock al público. Consultá disponibilidad por WhatsApp.
-          </p>
-        </div>
+        <div class="gallery-count" id="galleryCount">1 de 1</div>
+        <div class="gallery-thumbs" id="galleryThumbs" aria-label="Imágenes del producto"></div>
+      </div>
+      <div class="product-modal-content">
+        <span id="modalProductCategory" class="badge-dark"></span>
+        <h2 id="modalProductTitle"></h2>
+        <strong id="modalProductPrice" class="product-modal-price"></strong>
+        <p id="modalProductDescription" class="product-modal-description"></p>
+        <div id="modalProductTalles" class="product-modal-chips"></div>
+        <span id="modalProductState" class="state ok"></span>
+        <a id="modalProductWhatsapp" class="btn btn-primary" data-wa="" href="#" target="_blank" rel="noopener">Consultar por WhatsApp</a>
       </div>
     </div>
   </div>
 
-  <div class="lightbox" id="lightbox" aria-hidden="true">
-    <div class="lightbox__backdrop" data-lightbox-close></div>
-    <button class="lightbox__close" type="button" aria-label="Cerrar imagen" data-lightbox-close>
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
-    <div class="lightbox__content" role="dialog" aria-modal="true" aria-label="Imagen ampliada">
-      <img id="lightbox-img" alt="" />
-    </div>
+  <div class="image-lightbox" id="imageLightbox" hidden aria-hidden="true">
+    <button class="image-lightbox-close" id="imageLightboxClose" type="button" aria-label="Cerrar imagen ampliada">×</button>
+    <img id="imageLightboxImg" src="" alt="">
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./assets/js/constants.js"></script>
-  <script src="./assets/js/supabase.js"></script>
+  <script src="./assets/js/config.js"></script>
+  <script src="./assets/js/supabase-client.js"></script>
+  <script src="./assets/js/ui.js"></script>
   <script src="./assets/js/catalogo.js"></script>
 </body>
 </html>

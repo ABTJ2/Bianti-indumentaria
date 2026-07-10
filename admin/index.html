@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Admin | BIANTI INDUMENTARIA</title>
+  <link rel="icon" type="image/png" href="../assets/img/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/responsive.css">
+</head>
+<body class="admin-body">
+  <div class="admin-layout">
+    <aside class="admin-sidebar" id="sidebar" aria-label="Menú de administración">
+      <div class="admin-brand">
+        <img src="../assets/img/logo.png" alt="BIANTI">
+        <div class="admin-brand-text"><strong>BIANTI</strong><span>INDUMENTARIA</span></div>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Contraer menú" title="Contraer menú"><span aria-hidden="true">‹</span></button>
+      <nav class="admin-nav" id="sideNav">
+        <button class="sideLink active" data-section="dashboard" title="Panel principal"><span class="nav-icon">▦</span><span class="nav-label">Panel principal</span></button>
+        <button class="sideLink" data-section="productos" title="Productos"><span class="nav-icon">□</span><span class="nav-label">Productos</span></button>
+        <button class="sideLink" data-section="importar" title="Importar productos"><span class="nav-icon">⇧</span><span class="nav-label">Importar productos</span></button>
+        <button class="sideLink" data-section="categorias" title="Categorías"><span class="nav-icon">▤</span><span class="nav-label">Categorías</span></button>
+        <button class="sideLink" data-section="pedidos" title="Pedidos"><span class="nav-icon">▣</span><span class="nav-label">Pedidos</span></button>
+        <button class="sideLink" data-section="ofertas" title="Ofertas"><span class="nav-icon">%</span><span class="nav-label">Ofertas</span></button>
+        <button class="sideLink" data-section="metricas" title="Métricas"><span class="nav-icon">↗</span><span class="nav-label">Métricas</span></button>
+        <button class="sideLink" data-section="estadisticas" title="Estadísticas"><span class="nav-icon">▥</span><span class="nav-label">Estadísticas</span></button>
+        <button class="sideLink" data-section="contabilidad" title="Contabilidad"><span class="nav-icon">$</span><span class="nav-label">Contabilidad</span></button>
+      </nav>
+      <button class="logout-link" id="btnLogout" title="Cerrar sesión"><span class="nav-icon">↩</span><span class="nav-label">Cerrar sesión</span></button>
+    </aside>
+    <div class="admin-overlay" id="scrim"></div>
+    <main class="admin-main">
+      <header class="admin-top">
+        <div class="admin-top-left">
+          <button class="menu-btn" id="hamb" type="button" aria-label="Abrir menú">☰</button>
+          <button class="top-collapse" id="topSidebarToggle" type="button" aria-label="Contraer menú" title="Contraer menú">☰</button>
+          <div class="topbar-title"><strong>BIANTI Admin</strong><span id="topSectionName">Panel principal</span></div>
+        </div>
+        <a class="btn btn-outline" href="../index.html" target="_blank" rel="noopener">Ver catálogo</a>
+      </header>
+      <div class="admin-content">
+        <div class="status hidden" id="globalStatus"></div>
+        <div class="module-loader hidden" id="moduleLoader">Cargando módulo...</div>
+        <main id="adminContent" class="admin-module-host" aria-live="polite"></main>
+      </div>
+    </main>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/config.js"></script>
+  <script src="../assets/js/supabase-client.js"></script>
+  <script src="../assets/js/ui.js"></script>
+  <script src="../assets/js/helpers.js"></script>
+  <script src="./admin.js"></script>
+</body>
+</html>

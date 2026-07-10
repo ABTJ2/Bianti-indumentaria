@@ -1,0 +1,129 @@
+/* Estados iniciales seguros para Cloudflare Pages: nada se abre sin interacción real. */
+.product-modal[hidden],
+.filter-drawer[hidden] {
+  display: none !important;
+}
+
+.product-modal:not(.is-open),
+.filter-drawer:not(.is-open) {
+  display: none;
+}
+
+.product-modal.is-open:not([hidden]),
+.filter-drawer.is-open:not([hidden]) {
+  display: grid;
+}
+
+@media (max-width: 720px) {
+  .mobile-catalog-bar {
+    position: sticky;
+    top: 64px;
+    z-index: 45;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 14px 9px;
+    background: rgba(255,255,255,.96);
+    border-bottom: 1px solid #e7dff0;
+    box-shadow: 0 10px 28px rgba(20,10,30,.08);
+    backdrop-filter: blur(12px);
+  }
+
+  .mobile-category-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .mobile-catalog-bar select {
+    min-height: 40px;
+    border-radius: 13px;
+    border: 1px solid #d9cfe2;
+    background: #fff;
+    color: #16131a;
+    font-weight: 800;
+  }
+
+  .mobile-bar-btn {
+    min-height: 40px;
+    border: 1px solid #c9a8dd;
+    border-radius: 13px;
+    background: #fff;
+    color: #5f2d8d;
+    padding: 8px 10px;
+    font-size: 13px;
+    font-weight: 900;
+  }
+
+  .mobile-current {
+    grid-column: 1 / -1;
+    color: #6f6877;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.15;
+  }
+
+  .mobile-search-input {
+    grid-column: 1 / -1;
+    min-height: 40px;
+    border-radius: 13px;
+    border: 1px solid #d9cfe2;
+    background: #fff;
+    color: #16131a;
+  }
+
+  .filter-drawer,
+  .product-modal {
+    z-index: 130;
+  }
+
+  .quick-categories {
+    grid-template-columns: 1fr;
+  }
+
+  .search-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-copy {
+    min-height: 260px;
+  }
+
+  .product-modal-dialog {
+    display: block;
+  }
+
+  .product-modal-image {
+    min-height: 260px;
+  }
+
+  .catalog-benefits {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-grid {
+    text-align: center;
+  }
+
+  .site-footer img {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .footer-contact .btn {
+    width: 100%;
+  }
+
+  .footer-bottom {
+    align-items: center;
+  }
+}
+
+@media (min-width: 721px) {
+  .mobile-catalog-bar {
+    display: none !important;
+  }
+}

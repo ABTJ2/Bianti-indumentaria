@@ -1,0 +1,110 @@
+@media (max-width: 720px) {
+  .public-nav { display: flex; margin-left: auto; }
+  .public-nav .contact-link { display: none; }
+  .topbar-in { min-height: 64px; }
+  .btn-whatsapp { display: none; }
+  .search-panel { grid-template-columns: 1fr; }
+  .quick-categories { display: grid; grid-template-columns: 1fr; }
+  .quick-categories select { max-width: none; }
+  .section-head { display: block; }
+  .hero-copy { min-height: 330px; }
+  .product-modal-dialog { max-height: 92vh; overflow: auto; }
+  .product-gallery { padding: 12px; }
+  .product-modal-image { min-height: 280px; height: 330px; }
+  .footer-grid { grid-template-columns: 1fr; }
+  .bar-row { grid-template-columns: 82px 1fr; }
+  .bar-row b { display: none; }
+}
+
+@media (min-width: 720px) {
+  .hero-grid { grid-template-columns: 1.08fr .92fr; }
+  .products-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .category-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .catalog-benefits { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .footer-grid { grid-template-columns: 1fr 1fr 1fr; }
+  .product-modal-dialog { grid-template-columns: .9fr 1.1fr; }
+}
+
+@media (min-width: 1040px) {
+  .products-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .category-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1280px) {
+  .products-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (min-width: 900px) and (max-width: 1279px) {
+  .products-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (min-width: 650px) and (max-width: 899px) {
+  .products-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 649px) {
+  .products-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 900px) {
+  .admin-layout { display: block; }
+  .admin-sidebar { position: fixed; inset: 0 auto 0 0; width: min(252px, calc(100vw - 42px)); transform: translateX(-105%); transition: transform .18s ease; }
+  .admin-sidebar.open { transform: translateX(0); }
+  .sidebar-collapsed .admin-brand-text, .sidebar-collapsed .nav-label { display: block; }
+  .sidebar-collapsed .sideLink, .sidebar-collapsed .logout-link { justify-content: flex-start; padding-inline: 10px; }
+  .sidebar-toggle, .top-collapse { display: none; }
+  .menu-btn { display: inline-grid; place-items: center; }
+  .admin-content { padding: 12px; }
+  .admin-top { height: 54px; padding-inline: 12px; }
+  .pageHead { display: grid; grid-template-columns: 1fr; }
+  .pageHead h1 { font-size: 24px; }
+  .topbar-title strong { font-size: 13px; }
+  .topbar-title span { font-size: 10px; }
+  .admin-top .btn { min-height: 32px; padding-inline: 9px; }
+  .toolbar, .toolbarCompact, .twoCol, .dataGrid, .fieldGrid, .checkGrid, .quickGrid, .flowGrid, .fileSummary { grid-template-columns: 1fr; }
+  .kpiGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .panel { padding: 12px; }
+  .actionsRight { justify-content: flex-start; }
+}
+
+@media (max-width: 620px) {
+  html, body { max-width: 100%; overflow-x: hidden; }
+  .admin-body { font-size: 12px; }
+  .admin-content { padding: 10px 10px 22px; }
+  .admin-module-host { gap: 10px; }
+  .kpiGrid { grid-template-columns: 1fr; gap: 8px; }
+  .kpiCard { min-height: 70px; padding: 11px; }
+  .kpiCard strong { font-size: 19px; }
+  .toolbar, .toolbarCompact { padding: 9px; gap: 7px; }
+  .btn, .btnPrimary, .btnDanger { width: 100%; min-height: 38px; }
+  .actionsRow { display: grid; grid-template-columns: 1fr; width: 100%; }
+  .actionsRow .btn { width: 100%; }
+  .input, input, select, .textarea, textarea { min-height: 38px; }
+  .tableHeader, .pagination { display: grid; grid-template-columns: 1fr; align-items: start; }
+  .compactTable.mobileCards { min-width: 0; border-collapse: separate; border-spacing: 0 8px; background: transparent; }
+  .compactTable.mobileCards thead { display: none; }
+  .compactTable.mobileCards tbody, .compactTable.mobileCards tr, .compactTable.mobileCards td { display: block; width: 100%; }
+  .compactTable.mobileCards tr { padding: 10px; border: 1px solid var(--admin-line); border-radius: 12px; background: #fff; box-shadow: var(--admin-shadow); }
+  .compactTable.mobileCards td { padding: 5px 0; border: 0; font-size: 12px; }
+  .compactTable.mobileCards td::before { content: attr(data-label); display: block; margin-bottom: 2px; color: var(--admin-muted); font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; }
+  .compactTable.mobileCards td:first-child::before, .compactTable.mobileCards td.actionsCell::before { display: none; }
+  .compactTable.mobileCards td.actionsCell { white-space: normal; }
+  .compactTable.mobileCards .productActionsGrid, .compactTable.mobileCards .categoryActions { display: grid; width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .compactTable.mobileCards .productActionsGrid .btn, .compactTable.mobileCards .categoryActions .btn { min-height: 32px; }
+  .categoryTable.mobileCards tr { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 0 10px; }
+  .categoryTable.mobileCards td:first-child { grid-row: span 4; }
+  .categoryTable.mobileCards td:first-child::before { display: none; }
+  .categoryTable.mobileCards td.actionsCell { grid-column: 1 / -1; }
+  .miniRow { grid-template-columns: 38px minmax(0, 1fr); }
+  .miniMetric { grid-column: 2; justify-self: start; }
+  .thumb, .thumbSmall, .thumbBox { width: 44px; height: 44px; }
+  .barRow, .groupRow, .hBarRow { grid-template-columns: 1fr; }
+  .barRow b { grid-column: 2; }
+  .offerGrid { grid-template-columns: 1fr; }
+  .offerCardTop { grid-template-columns: 104px minmax(0, 1fr); }
+  .offerCardMedia { width: 104px; height: 104px; }
+  .offerControls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .donutWrap { grid-template-columns: 1fr; justify-items: center; }
+  .bianti-modal-overlay { padding: 10px; }
+  .modal-actions { display: grid; grid-template-columns: 1fr; }
+}

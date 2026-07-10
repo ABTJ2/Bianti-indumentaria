@@ -1,0 +1,7 @@
+assets/js/config.js
+.env
+storage/
+*.zip
+backups/
+node_modules/
+vendor/

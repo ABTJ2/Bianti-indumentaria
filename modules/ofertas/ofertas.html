@@ -1,0 +1,15 @@
+<div class="pageHead"><div><h1>Ofertas</h1><p class="moduleIntro">Creá promociones para productos específicos. Elegí el descuento, duración y estado de cada oferta.</p></div></div>
+<div class="toolbar">
+  <label>Buscar ID o nombre<input class="input" id="offerQ" placeholder="Producto o ID"></label>
+  <label>Categoría<select class="select" id="offerCat"><option value="">Todas</option></select></label>
+  <label>Oferta<select class="select" id="offerState"><option value="">Todos</option><option value="con">Con oferta</option><option value="sin">Sin oferta</option><option value="activa">Oferta activa</option><option value="inactiva">Oferta inactiva</option></select></label>
+  <label>Precio mín.<input class="input" id="offerMin" type="number" min="0" step="0.01"></label>
+  <label>Precio máx.<input class="input" id="offerMax" type="number" min="0" step="0.01"></label>
+  <label>Por página<select class="select" id="offerPageSize"><option>24</option><option>48</option><option>96</option></select></label>
+  <button class="btn" id="offerClear">Limpiar</button>
+</div>
+<section class="panel">
+  <div class="tableHeader"><div><strong>Productos para promocionar</strong><br><span id="offerCount">0 productos</span></div><div class="actionsRow actionsRight"><button class="btn btnSmall" id="offerPrev">Anterior</button><span class="paginationInfo" id="offerPageInfo">Página 1</span><button class="btn btnSmall" id="offerNext">Siguiente</button></div></div>
+  <div class="offerGrid" id="offerCards"></div>
+  <p class="fine">Se conserva el almacenamiento actual de ofertas. Si no hay tabla aprobada, se usan las ofertas temporales del navegador.</p>
+</section>

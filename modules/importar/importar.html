@@ -1,0 +1,12 @@
+<div class="pageHead"><div><h1>Importar productos</h1><p class="moduleIntro">Cargá varios productos mediante un archivo CSV y un ZIP con sus imágenes. Revisá la vista previa antes de importar.</p></div></div>
+<div class="panel">
+  <h2>Importación por lotes</h2>
+  <div class="fieldGrid">
+    <label><span class="label">1. Seleccionar CSV</span><input class="input" id="csvFile" type="file" accept=".csv,text/csv"></label>
+    <label><span class="label">2. Seleccionar ZIP de imágenes</span><input class="input" id="zipFile" type="file" accept=".zip"></label>
+    <div><span class="label">3. Validar e importar</span><div class="actionsRow"><button class="btn" id="previewImport">Validar y ver vista previa</button><button class="btn btnPrimary" id="runImport">Importar por lotes</button></div></div>
+  </div>
+  <div class="fileSummary"><div class="filePill"><strong>CSV:</strong> <span id="csvName">Sin seleccionar</span></div><div class="filePill"><strong>ZIP:</strong> <span id="zipName">Sin seleccionar</span></div></div>
+  <p class="fine">Columnas esperadas: titulo, descripcion, precio_venta/precio, precio_costo, categoria, talles, imagen. Si alguna operación no está permitida, se muestra el error real.</p>
+</div>
+<div class="importPreview" id="importPreview"><pre>Seleccioná CSV y, si corresponde, ZIP de imágenes para comenzar.</pre></div>

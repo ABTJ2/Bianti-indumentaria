@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Ingreso | BIANTI INDUMENTARIA</title>
+  <link rel="icon" type="image/png" href="../assets/img/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/responsive.css">
+</head>
+<body class="auth-body">
+  <main class="auth-stage" aria-label="Ingreso BIANTI">
+    <section class="login-card">
+      <a class="login-back" href="../index.html">Volver al catálogo</a>
+      <div class="login-head"><img src="../assets/img/logo.png" alt="BIANTI"><h1>BIANTI INDUMENTARIA</h1><p>Ingreso privado</p></div>
+      <form class="form-grid" id="loginForm">
+        <label><span class="label">Usuario</span><input class="input" id="username" name="username" type="text" autocomplete="username" required placeholder="Ingresá tu usuario"></label>
+        <label><span class="label">Contraseña</span><span class="password-wrap"><input class="input" id="password" name="password" type="password" autocomplete="current-password" required placeholder="Ingresá tu contraseña"><button class="password-toggle" id="togglePassword" type="button" aria-label="Mostrar contraseña">Mostrar</button></span></label>
+        <button class="btn btn-primary btn-block login-submit" id="loginSubmit" type="submit"><span>Ingresar</span><span class="login-spinner" aria-hidden="true"></span></button>
+        <div class="status hidden" id="loginStatus" role="status"></div>
+      </form>
+    </section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/config.js"></script>
+  <script src="../assets/js/supabase-client.js"></script>
+  <script src="../assets/js/ui.js"></script>
+  <script src="./login.js"></script>
+</body>
+</html>

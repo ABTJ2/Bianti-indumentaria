@@ -1,613 +1,641 @@
-// ./assets/js/catalogo.js
-(() => {
-  // Tomamos el cliente ya creado en supabase.js (NO redeclarar "supabase")
+(async function () {
   const sb = window.supabaseClient;
-  if (!sb) {
-    console.error("No existe window.supabaseClient. Revisá ./assets/js/supabase.js");
-    return;
-  }
+  const ui = window.BiantiUI;
+  const $ = (id) => document.getElementById(id);
+  const state = { productos: [], categorias: [], rels: [], fotos: [], talles: [], eventos: [], ofertas: [], query: '', category: '', talle: '', minPrice: '', maxPrice: '', offer: '', sort: 'recientes' };
+  let lastDetailTrigger = null;
+  let galleryImages = [];
+  let galleryIndex = 0;
 
-  // Config (ideal: que constants.js defina esto)
-  const WA_NUMBER =
-    window.BIANTI?.WHATSAPP_NUMBER ||
-    window.WHATSAPP_NUMBER ||
-    window.WA_NUMBER ||
-    "";
+  const els = {
+    status: $('catalogStatus'), search: $('search'), quickCategory: $('quickCategory'), clearCategory: $('clearCategory'),
+    featured: $('featuredGrid'), offers: $('offersGrid'), visualCategories: $('visualCategories'), dynamic: $('dynamicResults'),
+    products: $('products'), empty: $('empty'), resultsTitle: $('resultsTitle'), resultsCount: $('resultsCount'), drawer: $('filterDrawer'),
+    filterCategory: $('filterCategory'), filterTalle: $('filterTalle'), talleFilterWrap: $('talleFilterWrap'), filterMinPrice: $('filterMinPrice'), filterMaxPrice: $('filterMaxPrice'), filterOffer: $('filterOffer'), sort: $('sort'),
+    btnFilters: $('btnFilters'), btnOpenFilters: $('btnOpenFilters'), btnWaTop: $('btnWaTop'), btnWaBottom: $('btnWaBottom'), modal: $('productModal'),
+    mobileCategory: $('mobileCategory'), mobileSearch: $('mobileSearch'), mobileFilters: $('mobileFilters'), mobileSearchInput: $('mobileSearchInput'), mobileCurrentCategory: $('mobileCurrentCategory'),
+    modalImage: $('modalProductImage'), modalCategory: $('modalProductCategory'), modalTitle: $('modalProductTitle'), modalPrice: $('modalProductPrice'),
+    modalDescription: $('modalProductDescription'), modalTalles: $('modalProductTalles'), modalState: $('modalProductState'), modalWhatsapp: $('modalProductWhatsapp'),
+    galleryPrev: $('galleryPrev'), galleryNext: $('galleryNext'), galleryCount: $('galleryCount'), galleryThumbs: $('galleryThumbs'), lightbox: $('imageLightbox'), lightboxImg: $('imageLightboxImg'), lightboxClose: $('imageLightboxClose'),
+    catalogMenuBtn: $('catalogMenuBtn'), catalogMenuList: $('catalogMenuList')
+  };
 
-  const WA_BASE = `https://wa.me/${WA_NUMBER}`;
-
-  // UI refs
-  const $ = (q) => document.querySelector(q);
-  const grid = $("#grid");
-  const empty = $("#empty");
-  const q = $("#q");
-  const cat = $("#cat");
-  const catChips = $("#cat-chips");
-
-  const statProductos = $("#stat-productos");
-  const statCategorias = $("#stat-categorias");
-
-  const btnWaTop = $("#btn-wa-top");
-  const btnWaBottom = $("#btn-wa-bottom");
-  const footerWaLink = $("#footer-wa-link");
-
-  // Modal refs
-  const modal = $("#modal");
-  const mImg = $("#m-img");
-  const mZoom = $("#m-zoom");
-  const mThumbs = $("#m-thumbs");
-  const mCat = $("#m-cat");
-  const mTitle = $("#m-title");
-  const mPrice = $("#m-price");
-  const mDesc = $("#m-desc");
-  const mSizes = $("#m-sizes");
-  const mWa = $("#m-wa");
-  const lightbox = $("#lightbox");
-  const lightboxImg = $("#lightbox-img");
-
-  // Carousel
-  const carouselTrack = $("#carousel-track");
-  const carouselDots = $("#carousel-dots");
-
-  // State
-  let productos = [];
-  let categorias = [];
-  let fotosByProducto = new Map();
-  let tallesByProducto = new Map();
-  let categoriasByProducto = new Map();
-
-  let filtered = [];
-  let currentCatId = "";
-  let currentQuery = "";
-
-  // Helpers
-  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (m) => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
-  }[m]));
-
-  const money = (n) => {
-    const v = Number(n || 0);
-    try {
-      return v.toLocaleString("es-AR", { style: "currency", currency: "ARS" });
-    } catch {
-      return `$ ${v}`;
+  function resetInitialOverlays() {
+    els.modal?.classList.remove('is-open');
+    els.drawer?.classList.remove('is-open');
+    if (els.modal) {
+      els.modal.hidden = true;
+      els.modal.setAttribute('aria-hidden', 'true');
     }
-  };
-
-  const buildWaMessage = (p, extra = {}) => {
-    const titulo = p?.titulo || p?.nombre || `Producto #${p?.id ?? ""}`;
-    const catName = extra?.categoria_nombre || "";
-    const precio = extra?.precio_txt || "";
-
-    // Mensaje de consulta profesional.
-    const lines = [
-      "!Hola!",
-      "Quiero consultar por este producto:",
-      `• ${titulo}${catName ? ` (${catName})` : ""}`,
-      precio ? `• Precio: ${precio}` : null,
-      "¿Esta disponible?",
-    ].filter(Boolean);
-
-    return lines.join("\n");
-  };
-
-  const buildWaText = (p, extra = {}) => encodeURIComponent(buildWaMessage(p, extra));
-
-  const waLink = (textEncoded) => `${WA_BASE}?text=${textEncoded}`;
-
-  async function crearPedidoWhatsapp(p, extra = {}) {
-    const precio = getPrecio(p);
-    const mensaje = buildWaMessage(p, extra);
-
-    const { error } = await sb.from("pedidos").insert([{
-      producto_id: p?.id ?? null,
-      producto_titulo: p?.titulo || p?.nombre || null,
-      producto_precio: Number.isFinite(Number(precio)) ? Number(precio) : null,
-      producto_imagen: getCoverUrl(p) || null,
-      estado: "en_revision",
-      mensaje,
-      origen: "catalogo_whatsapp",
-      created_at: new Date().toISOString(),
-    }]);
-
-    if (error) throw error;
+    if (els.drawer) {
+      els.drawer.hidden = true;
+      els.drawer.setAttribute('aria-hidden', 'true');
+    }
+    els.btnFilters?.setAttribute('aria-expanded', 'false');
+    document.body.classList.remove('modal-open');
   }
 
-  async function handleWhatsappClick(e, p, extra = {}) {
-    e.preventDefault();
-    const url = waLink(buildWaText(p, extra));
-    const waWindow = window.open("", "_blank");
-    if (waWindow) waWindow.opener = null;
+  resetInitialOverlays();
 
+  const categoryImages = {
+    'gorras-y-accesorios': 'gorras-accesorios.png',
+    'cosmetica-y-perfumeria': 'cosmetica-perfumeria.png',
+    'cosmetica-perfumeria': 'cosmetica-perfumeria.png',
+    electrodomesticos: 'electrodomesticos.png',
+    'bazar-y-hogar': 'bazar-hogar.png',
+    'bazar-hogar': 'bazar-hogar.png',
+    libreria: 'libreria.png',
+    indumentaria: 'indumentaria.png',
+    'indumentaria-superior': 'indumentaria.png',
+    'indumentaria-inferior': 'indumentaria-inferior.png',
+    'bolsos-y-mochilas': 'bolsos-mochilas.png',
+    jugueteria: 'jugueteria.png',
+    'ropa-interior': 'ropa-interior-full.png',
+    varios: 'varios.png'
+  };
+
+  function setStatus(message, type = '') {
+    if (!els.status) return;
+    els.status.textContent = message;
+    els.status.className = `status ${type}`.trim();
+    els.status.classList.toggle('hidden', !message);
+  }
+
+  function normalizeText(value) {
+    return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+  }
+
+  function slug(value) {
+    return normalizeText(value).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'varios';
+  }
+
+  function waNumber() {
+    return String(window.BIANTI?.WHATSAPP || '').replace(/\D/g, '');
+  }
+
+  function waUrl(text) {
+    const encoded = encodeURIComponent(text);
+    return waNumber() ? `https://wa.me/${waNumber()}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
+  }
+
+  function title(product) {
+    return String(product?.titulo || product?.nombre || '').trim();
+  }
+
+  function price(product) {
+    return Number(product?.precio_final ?? product?.precio_venta ?? product?.precio ?? 0) || 0;
+  }
+
+  function isVisible(product) {
+    return product && product.visible !== false && product.visible !== 0 && product.disponible !== false && product.disponible !== 0;
+  }
+
+  function productCats(id) {
+    const relIds = state.rels.filter((row) => String(row.producto_id) === String(id)).map((row) => String(row.categoria_id)).filter(Boolean);
+    const product = state.productos.find((row) => String(row.id) === String(id));
+    if (!relIds.length && product?.categoria_id) relIds.push(String(product.categoria_id));
+    return Array.from(new Set(relIds));
+  }
+
+  function productTalles(id) {
+    return Array.from(new Set(state.talles.filter((row) => String(row.producto_id) === String(id)).map((row) => String(row.talle || '').trim()).filter(Boolean)));
+  }
+
+  function categoryName(product) {
+    const names = productCats(product.id).map((id) => state.categorias.find((cat) => String(cat.id) === id)?.nombre).filter(Boolean);
+    return names.join(', ') || 'Sin categoría';
+  }
+
+  function cover(product) {
+    const direct = String(product?.portada_url || '').trim();
+    if (direct) return direct;
+    return String(state.fotos.find((foto) => String(foto.producto_id) === String(product?.id))?.url || '').trim();
+  }
+
+  function imagesFor(product) {
+    const urls = [];
+    const add = (url) => {
+      const clean = String(url || '').trim();
+      if (clean && !urls.includes(clean)) urls.push(clean);
+    };
+    add(product?.portada_url);
+    state.fotos.filter((foto) => String(foto.producto_id) === String(product?.id)).sort((a, b) => Number(a.orden || 0) - Number(b.orden || 0)).forEach((foto) => add(foto.url));
+    return urls.length ? urls : ['./assets/img/placeholder-product.svg'];
+  }
+
+  function productImage(product) {
+    const src = cover(product);
+    if (!src) return '<div class="product-image-placeholder"><span>Sin imagen</span></div>';
+    return `<img src="${ui.html(src)}" alt="${ui.html(title(product))}" loading="lazy" width="360" height="420">`;
+  }
+
+  function getLocalOffers() {
+    try { return JSON.parse(localStorage.getItem('bianti_ofertas_static') || '[]'); } catch { return []; }
+  }
+
+  function offerDate(value) {
+    const date = value ? new Date(value) : null;
+    return date && !Number.isNaN(date.getTime()) ? date : null;
+  }
+
+  function normalizeOffer(offer) {
+    const pct = Number(offer.porcentaje ?? offer.descuento ?? offer.discount ?? 0) || 0;
+    const start = offerDate(offer.inicio ?? offer.desde ?? offer.starts_at ?? offer.created_at);
+    const end = offerDate(offer.fin ?? offer.hasta ?? offer.ends_at ?? offer.expires_at);
+    return {
+      ...offer,
+      producto_id: offer.producto_id ?? offer.product_id,
+      porcentaje: pct,
+      precio_anterior: Number(offer.precio_anterior ?? offer.precio_base ?? offer.original_price ?? 0) || 0,
+      precio_final: Number(offer.precio_final ?? offer.final_price ?? 0) || 0,
+      inicio: start,
+      fin: end,
+      activa: offer.activa ?? offer.active ?? offer.habilitada ?? offer.enabled
+    };
+  }
+
+  function isActiveOffer(offer, product) {
+    const normalized = normalizeOffer(offer);
+    const now = Date.now();
+    if (String(normalized.producto_id) !== String(product?.id)) return false;
+    if (normalized.activa === false || normalized.activa === 0) return false;
+    if (normalized.inicio && normalized.inicio.getTime() > now) return false;
+    if (normalized.fin && normalized.fin.getTime() < now) return false;
+    return isVisible(product);
+  }
+
+  function offerFor(id) {
+    const now = Date.now();
+    const product = state.productos.find((row) => String(row.id) === String(id));
+    return state.ofertas.map(normalizeOffer).find((offer) => isActiveOffer(offer, product));
+  }
+
+  function withOffer(product) {
+    const offer = offerFor(product.id);
+    if (!offer) return product;
+    const discount = Number(offer.porcentaje ?? offer.descuento ?? 0) || 0;
+    const base = price(product);
+    const finalPrice = Number(offer.precio_final || 0) || (discount > 0 && base > 0 ? Math.round(base * (1 - discount / 100) * 100) / 100 : base);
+    return { ...product, oferta_descuento: discount, precio_base: base, precio_final: finalPrice, oferta_fin: offer.fin };
+  }
+
+  function whatsappMessage(product) {
+    const item = withOffer(product);
+    const name = title(item);
+    const talle = state.talle ? `\nTalle: ${state.talle}` : '';
+    if (item.oferta_descuento) {
+      return `Hola BIANTI, quiero consultar por este producto en oferta:\n\nProducto: ${name}\nPrecio anterior: ${ui.money(item.precio_base)}\nPrecio de oferta: ${ui.money(price(item))}\nDescuento: ${item.oferta_descuento}%${talle}\n\n¿Sigue disponible la oferta?`;
+    }
+    return `Hola BIANTI, quiero consultar por este producto:\n\nProducto: ${name}\nPrecio: ${ui.money(price(item))}${talle}\n\n¿Está disponible?`;
+  }
+
+  async function logEvent(type, product = null, payload = {}) {
+    if (!sb) return;
+    const productoId = product?.id ? String(product.id) : '';
+    const row = {
+      type,
+      ...(productoId ? { producto_id: product.id } : {}),
+      payload: { ...payload, ...(productoId ? { producto_id: productoId, id: productoId } : {}) },
+      created_at: new Date().toISOString()
+    };
     try {
-      await crearPedidoWhatsapp(p, extra);
-    } catch (err) {
-      console.error("No se pudo guardar la consulta de WhatsApp:", err);
-    } finally {
-      if (waWindow) {
-        waWindow.location.href = url;
-      } else {
-        window.location.href = url;
+      const { error } = await sb.from('eventos').insert(row);
+      if (error && productoId && /producto_id|schema cache|column/i.test(error.message || '')) {
+        const { producto_id, ...fallback } = row;
+        const retry = await sb.from('eventos').insert(fallback);
+        if (retry.error) throw retry.error;
+        return;
       }
+      if (error) throw error;
+    } catch (error) {
+      console.warn('Evento no guardado:', error?.message || error);
     }
   }
 
-  const formatPhone = (value) => {
-    const digits = String(value || "").replace(/\D/g, "");
-    if (digits === "5492645694047") return "+54 9 264 569 4047";
-    return digits ? `+${digits}` : "";
-  };
-
-  async function logEvent(type, payload) {
+  async function createPedido(product) {
+    if (!sb || !product?.id) return;
     try {
-      // Tabla eventos: id, created_at, type, payload
-      await sb.from("eventos").insert([{ type, payload }]);
-    } catch (e) {
-      // no rompemos UX por tracking
-      console.warn("Tracking falló:", e?.message || e);
+      await sb.from('pedidos').insert({
+        producto_id: product.id,
+        producto_titulo: title(product),
+        producto_precio: price(withOffer(product)),
+        mensaje: whatsappMessage(product),
+        estado: 'en_revision',
+        origen: 'catalogo',
+        created_at: new Date().toISOString()
+      });
+    } catch (error) {
+      console.warn('Pedido no guardado:', error?.message || error);
     }
   }
 
-  function setGlobalWaButtons() {
-    if (!WA_NUMBER) {
-      [btnWaTop, btnWaBottom, footerWaLink].forEach((el) => {
-        if (!el) return;
-        el.hidden = true;
-        el.removeAttribute("href");
-      });
+  function card(product) {
+    const item = withOffer(product);
+    const name = title(item);
+    if (!name) return '';
+    const hasOffer = !!item.oferta_descuento;
+    return `<article class="product-card" data-product="${ui.html(item.id)}">
+      ${productImage(item)}
+      <div class="product-info">
+        <span class="${hasOffer ? 'badge-sale' : 'badge-dark'}">${hasOffer ? `OFERTA · ${ui.html(item.oferta_descuento)}% OFF` : ui.html(categoryName(item))}</span>
+        <h3>${ui.html(name)}</h3>
+        ${hasOffer ? `<small class="price-before">Antes ${ui.money(item.precio_base)}</small>` : ''}
+        <strong class="${hasOffer ? 'price-final' : ''}">${ui.money(price(item))}</strong>
+        ${hasOffer ? '<small class="sale-note">Oferta activa</small>' : ''}
+        <div class="product-actions">
+          <button class="btn btn-outline btn-detail" type="button" data-id="${ui.html(item.id)}">Ver detalle</button>
+          <a class="btn btn-primary btn-wa" data-wa="${ui.html(item.id)}" href="${ui.html(waUrl(whatsappMessage(item)))}" target="_blank" rel="noopener">Consultar</a>
+        </div>
+      </div>
+    </article>`;
+  }
+
+  function bindProductActions(root = document) {
+    root.querySelectorAll('.btn-detail').forEach((btn) => btn.addEventListener('click', () => openDetail(btn.dataset.id, btn)));
+    root.querySelectorAll('.btn-wa').forEach((link) => link.addEventListener('click', async () => {
+      const product = state.productos.find((row) => String(row.id) === String(link.dataset.wa));
+      if (!product) return;
+      await Promise.all([createPedido(product), logEvent('click_whatsapp', product, { titulo: title(product), precio: price(withOffer(product)), talle: state.talle || null })]);
+    }));
+  }
+
+  function scoreMap() {
+    const map = new Map();
+    state.eventos.forEach((event) => {
+      let payload = event.payload || {};
+      if (typeof payload === 'string') {
+        try { payload = JSON.parse(payload || '{}'); } catch { payload = {}; }
+      }
+      const id = String(event.producto_id || payload.producto_id || payload.id || payload.product_id || '').trim();
+      if (!id) return;
+      const type = String(event.type || '');
+      const score = type.includes('whatsapp') ? 3 : (['view_product', 'product_view'].includes(type) ? 1 : 0);
+      if (score) map.set(id, (map.get(id) || 0) + score);
+    });
+    return map;
+  }
+
+  function categoryImage(category) {
+    const src = String(category.portada_url || '').trim();
+    if (src) return src;
+    return `./assets/img/categorias/${categoryImages[slug(category.nombre)] || 'varios.png'}`;
+  }
+
+  function renderHome() {
+    const visible = state.productos.filter(isVisible).filter(title).map(withOffer);
+    const scores = scoreMap();
+    const featured = visible.slice().sort((a, b) => (scores.get(String(b.id)) || 0) - (scores.get(String(a.id)) || 0) || Number(b.id || 0) - Number(a.id || 0)).slice(0, 8);
+    const offers = visible.filter((product) => product.oferta_descuento).sort((a, b) => Number(b.oferta_descuento || 0) - Number(a.oferta_descuento || 0)).slice(0, 6);
+    els.featured.innerHTML = featured.length ? featured.map(card).join('') : ui.empty('No hay productos visibles para mostrar.');
+    els.offers.innerHTML = offers.length ? offers.map(card).join('') : ui.empty('No hay ofertas activas.');
+    els.visualCategories.innerHTML = state.categorias.length ? state.categorias.map((category) => `<article class="category-card" data-category="${ui.html(category.id)}"><img src="${ui.html(categoryImage(category))}" alt="Categoría ${ui.html(category.nombre)}" loading="lazy"><div><h3>${ui.html(category.nombre)}</h3><span>Ver productos</span></div></article>`).join('') : ui.empty('No hay categorías visibles.');
+    bindProductActions(document);
+    els.visualCategories.querySelectorAll('[data-category]').forEach((cardEl) => cardEl.addEventListener('click', () => {
+      state.category = cardEl.dataset.category;
+      state.talle = '';
+      syncControls();
+      updateTalleOptions();
+      renderCatalogMenu();
+      logEvent('view_category', null, { categoria_id: state.category });
+      renderResults(true);
+      els.dynamic?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }));
+  }
+
+  function renderSelects() {
+    const opts = state.categorias.map((category) => `<option value="${ui.html(category.id)}">${ui.html(category.nombre)}</option>`).join('');
+    els.quickCategory.innerHTML = `<option value="">Elegir categoría</option>${opts}`;
+    els.filterCategory.innerHTML = `<option value="">Todas</option>${opts}`;
+    if (els.mobileCategory) els.mobileCategory.innerHTML = `<option value="">Todas las categorías</option>${opts}`;
+    renderCatalogMenu();
+    updateTalleOptions();
+    syncControls();
+  }
+
+  function renderCatalogMenu() {
+    if (!els.catalogMenuList) return;
+    const rows = [{ id: '', nombre: 'Todos los productos' }, ...state.categorias];
+    els.catalogMenuList.innerHTML = rows.map((category) => `<button type="button" role="menuitem" data-catalog-category="${ui.html(category.id)}" class="${String(state.category) === String(category.id) ? 'is-active' : ''}">${ui.html(category.nombre)}${String(state.category) === String(category.id) ? '<span>Activo</span>' : ''}</button>`).join('');
+  }
+
+  function closeCatalogMenu() {
+    if (!els.catalogMenuList) return;
+    els.catalogMenuList.hidden = true;
+    els.catalogMenuBtn?.setAttribute('aria-expanded', 'false');
+  }
+
+  function openCatalogMenu() {
+    if (!els.catalogMenuList) return;
+    els.catalogMenuList.hidden = false;
+    els.catalogMenuBtn?.setAttribute('aria-expanded', 'true');
+    renderCatalogMenu();
+    els.catalogMenuList.querySelector('.is-active, [data-catalog-category]')?.focus({ preventScroll: true });
+  }
+
+  function toggleCatalogMenu() {
+    if (els.catalogMenuList?.hidden) openCatalogMenu(); else closeCatalogMenu();
+  }
+
+  function applyCatalogCategory(categoryId) {
+    state.category = categoryId || '';
+    state.talle = '';
+    syncControls();
+    updateTalleOptions();
+    renderCatalogMenu();
+    closeCatalogMenu();
+    if (state.category) logEvent('view_category', null, { categoria_id: state.category });
+    renderResults(true);
+    els.dynamic?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function updateTalleOptions() {
+    const ids = state.category ? new Set(state.productos.filter((product) => productCats(product.id).includes(String(state.category))).map((product) => String(product.id))) : null;
+    const talles = Array.from(new Set(state.talles.filter((row) => !ids || ids.has(String(row.producto_id))).map((row) => String(row.talle || '').trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'es', { numeric: true }));
+    els.talleFilterWrap.hidden = !talles.length;
+    els.filterTalle.innerHTML = `<option value="">Todos los talles</option>${talles.map((talle) => `<option value="${ui.html(talle)}">${ui.html(talle)}</option>`).join('')}`;
+    if (state.talle && !talles.includes(state.talle)) state.talle = '';
+    els.filterTalle.value = state.talle;
+  }
+
+  function currentCategoryName() {
+    if (!state.category) return 'Todas las categorías';
+    return state.categorias.find((category) => String(category.id) === String(state.category))?.nombre || 'Categoría seleccionada';
+  }
+
+  function matchesQuery(product, query) {
+    if (!query) return true;
+    const synonyms = {
+      pantalon: 'pantalones jogging jogger jean calza calzas short shorts bermuda',
+      calza: 'calzas pantalon pantalones',
+      remera: 'camiseta chomba musculosa blusa top',
+      perfume: 'perfumes fragancia roll on cosmetica crema',
+      mochila: 'mochilas bolso bolsos cartera carteras',
+      bazar: 'hogar taza vaso mate termo cocina',
+      juguete: 'jugueteria infantil niño niña'
+    };
+    const haystack = normalizeText(`${title(product)} ${product.descripcion || ''} ${categoryName(product)} ${productTalles(product.id).join(' ')}`);
+    return `${query} ${synonyms[query] || ''}`.split(' ').filter(Boolean).some((word) => haystack.includes(word));
+  }
+
+  function filteredProducts() {
+    const q = normalizeText(state.query);
+    const min = Number(state.minPrice);
+    const max = Number(state.maxPrice);
+    const hasMin = Number.isFinite(min) && state.minPrice !== '';
+    const hasMax = Number.isFinite(max) && state.maxPrice !== '';
+    const rows = state.productos.filter((product) => isVisible(product) && title(product) && matchesQuery(product, q) && (!state.category || productCats(product.id).includes(String(state.category))) && (!state.talle || productTalles(product.id).includes(state.talle))).map(withOffer).filter((product) => {
+      const productPrice = price(product);
+      return (!hasMin || productPrice >= min) && (!hasMax || productPrice <= max) && (state.offer !== 'activas' || !!product.oferta_descuento);
+    });
+    rows.sort((a, b) => state.sort === 'titulo_asc' ? title(a).localeCompare(title(b), 'es') : state.sort === 'titulo_desc' ? title(b).localeCompare(title(a), 'es') : state.sort === 'precio_asc' ? price(a) - price(b) : state.sort === 'precio_desc' ? price(b) - price(a) : Number(b.id || 0) - Number(a.id || 0));
+    return rows;
+  }
+
+  function hasActiveFilters(force = false) {
+    return Boolean(force || state.query || state.category || state.talle || state.minPrice || state.maxPrice || state.offer || state.sort !== 'recientes');
+  }
+
+  function renderResults(force = false) {
+    const active = hasActiveFilters(force);
+    document.querySelectorAll('[data-static-section]').forEach((el) => { el.hidden = active; });
+    els.dynamic.hidden = !active;
+    if (!active) {
+      els.products.innerHTML = '';
+      els.empty.hidden = true;
       return;
     }
-    const text = encodeURIComponent("Hola! Quiero hacer una consulta.");
-    const url = waLink(text);
-    if (btnWaTop) btnWaTop.href = url;
-    if (btnWaBottom) btnWaBottom.href = url;
-    if (footerWaLink) {
-      footerWaLink.href = url;
-      footerWaLink.textContent = formatPhone(WA_NUMBER);
-      footerWaLink.hidden = false;
-    }
+    const rows = filteredProducts();
+    const catName = state.category ? state.categorias.find((category) => String(category.id) === String(state.category))?.nombre : '';
+    els.resultsTitle.textContent = catName ? `Categoría: ${catName}` : 'Productos encontrados';
+    els.resultsCount.textContent = rows.length ? `${rows.length} producto${rows.length === 1 ? '' : 's'}` : '';
+    els.empty.hidden = rows.length > 0;
+    els.products.innerHTML = rows.map(card).join('');
+    bindProductActions(els.products);
   }
 
-  function openModal() {
-    modal?.setAttribute("aria-hidden", "false");
-    modal?.classList.add("is-open");
-    document.documentElement.classList.add("modal-open");
+  function renderGallery() {
+    const src = galleryImages[galleryIndex] || './assets/img/placeholder-product.svg';
+    const isPlaceholder = src.includes('placeholder-product.svg');
+    els.modalImage.hidden = false;
+    els.modalImage.src = src;
+    els.modalImage.alt = isPlaceholder ? 'Producto sin imagen' : `${els.modalTitle.textContent || 'Producto'} - imagen ${galleryIndex + 1}`;
+    els.modalImage.classList.toggle('is-placeholder', isPlaceholder);
+    els.galleryCount.textContent = `${galleryIndex + 1} de ${galleryImages.length}`;
+    const hasMany = galleryImages.length > 1;
+    els.galleryPrev.hidden = !hasMany;
+    els.galleryNext.hidden = !hasMany;
+    els.galleryThumbs.innerHTML = hasMany ? galleryImages.map((url, index) => `<button class="gallery-thumb ${index === galleryIndex ? 'is-active' : ''}" type="button" data-gallery-index="${index}" aria-label="Ver imagen ${index + 1}"><img src="${ui.html(url)}" alt="Miniatura ${index + 1}"></button>`).join('') : '';
+    els.galleryThumbs.querySelectorAll('[data-gallery-index]').forEach((btn) => btn.addEventListener('click', () => setGalleryIndex(Number(btn.dataset.galleryIndex))));
   }
 
-  function closeModal() {
-    modal?.setAttribute("aria-hidden", "true");
-    modal?.classList.remove("is-open");
-    closeLightbox();
-    document.documentElement.classList.remove("modal-open");
+  function setGalleryIndex(index) {
+    if (!galleryImages.length) return;
+    galleryIndex = (index + galleryImages.length) % galleryImages.length;
+    renderGallery();
   }
 
   function openLightbox() {
-    const src = mImg?.getAttribute("src") || "";
-    if (!lightbox || !lightboxImg || !src) return;
-    lightboxImg.src = src;
-    lightboxImg.alt = mImg.alt || "Imagen de producto";
-    lightbox.setAttribute("aria-hidden", "false");
-    lightbox.classList.add("is-open");
+    const src = galleryImages[galleryIndex];
+    if (!src || src.includes('placeholder-product.svg')) return;
+    els.lightboxImg.src = src;
+    els.lightboxImg.alt = els.modalImage.alt || 'Imagen ampliada del producto';
+    els.lightbox.hidden = false;
+    els.lightbox.setAttribute('aria-hidden', 'false');
+    els.lightbox.classList.add('is-open');
   }
 
   function closeLightbox() {
-    if (!lightbox) return;
-    lightbox.setAttribute("aria-hidden", "true");
-    lightbox.classList.remove("is-open");
-    if (lightboxImg) {
-      lightboxImg.src = "";
-      lightboxImg.alt = "";
-    }
+    els.lightbox.hidden = true;
+    els.lightbox.setAttribute('aria-hidden', 'true');
+    els.lightbox.classList.remove('is-open');
+    els.lightboxImg.src = '';
+    els.lightboxImg.alt = '';
   }
 
-  function bindModalClose() {
-    if (!modal) return;
-    modal.addEventListener("click", (e) => {
-      const t = e.target;
-      if (t?.closest?.("[data-close]")) closeModal();
-    });
-    window.addEventListener("keydown", (e) => {
-      if (e.key !== "Escape") return;
-      if (lightbox?.classList.contains("is-open")) {
-        closeLightbox();
-        return;
-      }
-      if (modal.classList.contains("is-open")) closeModal();
-    });
-  }
-
-  function bindLightbox() {
-    lightbox?.addEventListener("click", (e) => {
-      const t = e.target;
-      if (t?.closest?.("[data-lightbox-close]")) closeLightbox();
-    });
-    mImg?.addEventListener("click", openLightbox);
-    mZoom?.addEventListener("click", openLightbox);
-  }
-
-  function getCategoriaNombre(p) {
-    const rel = categoriasByProducto.get(String(p.id)) || [];
-    if (rel.length) return rel.map((id) => categorias.find((x) => String(x.id) === String(id))?.nombre).filter(Boolean).join(", ");
-    const c = categorias.find((x) => String(x.id) === String(p.categoria_id));
-    return c?.nombre || c?.titulo || "";
-  }
-
-  function getPrecio(p) {
-    // No explota si no existe precio_final.
-    return p.precio_final ?? p.precio ?? p.price ?? 0;
-  }
-
-  function getCoverUrl(p) {
-    return p.portada_url || p.imagen_url || p.foto_url || "";
-  }
-
-  function getGalleryUrls(p) {
-    const urls = [];
-    const seen = new Set();
-    const addUrl = (url) => {
-      const value = String(url || "").trim();
-      if (!value || seen.has(value)) return;
-      seen.add(value);
-      urls.push(value);
-    };
-
-    addUrl(p.portada_url);
-    (fotosByProducto.get(p.id) || []).forEach((foto) => addUrl(foto.url));
-    return urls;
-  }
-
-  function applyFilters() {
-    const qq = currentQuery.trim().toLowerCase();
-    const cid = String(currentCatId || "");
-
-    filtered = productos.filter((p) => {
-      const titulo = String(p.titulo || p.nombre || "").toLowerCase();
-      const desc = String(p.descripcion || "").toLowerCase();
-      const matchQ = !qq || titulo.includes(qq) || desc.includes(qq);
-      const rel = categoriasByProducto.get(String(p.id)) || [];
-      const matchC = !cid || String(p.categoria_id) === cid || rel.some((id) => String(id) === cid);
-      return matchQ && matchC;
-    });
-
-    renderGrid();
-  }
-
-  function renderGrid() {
-    if (!grid) return;
-
-    if (!filtered.length) {
-      grid.innerHTML = "";
-      if (empty) empty.hidden = false;
+  function openDetail(id, trigger = null) {
+    const product = state.productos.find((row) => String(row.id) === String(id));
+    if (!product || !title(product)) {
+      ui.toast('No se pudo cargar el producto.', 'error');
       return;
     }
-    if (empty) empty.hidden = true;
-
-    grid.innerHTML = filtered.map((p) => {
-      const catName = getCategoriaNombre(p);
-      const precioTxt = money(getPrecio(p));
-      const cover = getCoverUrl(p);
-
-      const hasCover = cover && cover.length > 0;
-      return `
-        <article class="card" data-id="${esc(p.id)}">
-          <div class="card__media">
-            ${hasCover
-              ? `<img src="${esc(cover)}" alt="${esc(p.titulo || p.nombre || "Producto")}" loading="lazy">`
-              : `<div class="img-placeholder"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`
-            }
-          </div>
-          <div class="card__body">
-            <div class="card__meta">
-              <span class="badge">${esc(catName || "Sin categoría")}</span>
-            </div>
-            <h3 class="card__title">${esc(p.titulo || p.nombre || `Producto #${p.id}`)}</h3>
-            <div class="card__price">${esc(precioTxt)}</div>
-            <div class="card__actions">
-              <button class="btn btn--ghost btn-detail" type="button" data-id="${esc(p.id)}">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                Ver detalle
-              </button>
-              <a class="btn btn--primary btn-wa" target="_blank" rel="noopener" data-id="${esc(p.id)}"
-                  href="${waLink(buildWaText(p, { categoria_nombre: catName, precio_txt: precioTxt }))}">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-                WhatsApp
-              </a>
-            </div>
-          </div>
-        </article>
-      `;
-    }).join("");
-
-    // bind detail buttons
-    grid.querySelectorAll(".btn-detail").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const id = btn.dataset.id;
-        const p = productos.find((x) => String(x.id) === String(id));
-        if (p) openProduct(p);
-      });
-    });
+    closeDrawer();
+    lastDetailTrigger = trigger;
+    const item = withOffer(product);
+    els.modalCategory.textContent = item.oferta_descuento ? `OFERTA · ${item.oferta_descuento}% OFF · ${categoryName(item)}` : categoryName(item);
+    els.modalTitle.textContent = title(item);
+    els.modalPrice.innerHTML = item.oferta_descuento ? `<span class="price-before">Antes ${ui.money(item.precio_base)}</span>${ui.money(price(item))}` : ui.money(price(item));
+    els.modalDescription.textContent = item.descripcion || 'Sin descripción adicional';
+    const talles = productTalles(item.id);
+    els.modalTalles.innerHTML = talles.length ? talles.map((talle) => `<span class="badge-soft">Talle ${ui.html(talle)}</span>`).join('') : '<span class="badge-soft">Sin talle especificado</span>';
+    const available = item.disponible !== false && item.disponible !== 0;
+    els.modalState.textContent = available ? 'Disponible para consultar' : 'No disponible';
+    els.modalState.className = `state ${available ? 'ok' : 'bad'}`;
+    els.modalWhatsapp.href = waUrl(whatsappMessage(item));
+    els.modalWhatsapp.dataset.wa = item.id;
+    els.modal.hidden = false;
+    els.modal.setAttribute('aria-hidden', 'false');
+    els.modal.classList.add('is-open');
+    document.body.classList.add('modal-open');
+    galleryImages = imagesFor(product);
+    galleryIndex = 0;
+    renderGallery();
+    els.modal.querySelector('[data-modal-close]')?.focus({ preventScroll: true });
+    logEvent('view_product', item, { titulo: title(item) });
   }
 
-  function renderCategoriasSelect() {
-    if (!cat && !catChips) return;
-    const base = `<option value="">Todas las categorías</option>`;
-    const opts = categorias
-      .slice()
-      .sort((a, b) => String(a.nombre || "").localeCompare(String(b.nombre || "")))
-      .map((c) => `<option value="${esc(c.id)}">${esc(c.nombre || c.titulo || `Cat #${c.id}`)}</option>`)
-      .join("");
-    if (cat) cat.innerHTML = base + opts;
+  function closeDetail() {
+    els.modal.hidden = true;
+    els.modal.setAttribute('aria-hidden', 'true');
+    els.modal.classList.remove('is-open');
+    els.modalImage.src = '';
+    els.modalImage.alt = '';
+    els.modalImage.hidden = true;
+    els.modalWhatsapp.dataset.wa = '';
+    galleryImages = [];
+    galleryIndex = 0;
+    closeLightbox();
+    document.body.classList.remove('modal-open');
+    lastDetailTrigger?.focus?.({ preventScroll: true });
+    lastDetailTrigger = null;
+  }
 
-    if (catChips) {
-      const chips = categorias
-        .slice()
-        .sort((a, b) => String(a.orden ?? a.nombre ?? "").localeCompare(String(b.orden ?? b.nombre ?? ""), "es", { numeric: true }))
-        .map((c) => `<button class="catChip" type="button" data-id="${esc(c.id)}">${esc(c.nombre || c.titulo || `Cat #${c.id}`)}</button>`)
-        .join("");
-      catChips.innerHTML = `<button class="catChip is-active" type="button" data-id="">Todas</button>${chips}`;
+  function openDrawer() {
+    closeDetail();
+    els.drawer.hidden = false;
+    els.drawer.setAttribute('aria-hidden', 'false');
+    els.drawer.classList.add('is-open');
+    els.btnFilters?.setAttribute('aria-expanded', 'true');
+    els.mobileFilters?.setAttribute('aria-expanded', 'true');
+    document.body.classList.add('modal-open');
+  }
 
-      catChips.querySelectorAll(".catChip").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          currentCatId = btn.dataset.id || "";
-          if (cat) cat.value = currentCatId;
-          catChips.querySelectorAll(".catChip").forEach((x) => x.classList.remove("is-active"));
-          btn.classList.add("is-active");
-          if (currentCatId) {
-            const c = categorias.find((x) => String(x.id) === String(currentCatId));
-            logEvent("view_category", { categoria_id: currentCatId, categoria_nombre: c?.nombre || null });
-          }
-          applyFilters();
-        });
-      });
+  function closeDrawer() {
+    els.drawer.hidden = true;
+    els.drawer.setAttribute('aria-hidden', 'true');
+    els.drawer.classList.remove('is-open');
+    els.btnFilters?.setAttribute('aria-expanded', 'false');
+    els.mobileFilters?.setAttribute('aria-expanded', 'false');
+    if (els.modal.hidden) document.body.classList.remove('modal-open');
+  }
+
+  function syncControls() {
+    els.quickCategory.value = state.category;
+    els.filterCategory.value = state.category;
+    els.filterTalle.value = state.talle;
+    if (els.filterMinPrice) els.filterMinPrice.value = state.minPrice;
+    if (els.filterMaxPrice) els.filterMaxPrice.value = state.maxPrice;
+    if (els.filterOffer) els.filterOffer.value = state.offer;
+    els.sort.value = state.sort;
+    if (els.mobileCategory) els.mobileCategory.value = state.category;
+    if (els.mobileSearchInput) els.mobileSearchInput.value = state.query;
+    if (els.mobileCurrentCategory) els.mobileCurrentCategory.textContent = currentCategoryName();
+  }
+
+  async function safeSelect(label, query, required = false) {
+    try {
+      const result = await query;
+      if (result.error) throw result.error;
+      return result.data || [];
+    } catch (error) {
+      const message = `No se pudo cargar ${label}: ${error.message || error}`;
+      if (required) throw new Error(message);
+      console.warn(message);
+      return [];
     }
   }
 
-  function renderCarousel() {
-    if (!carouselTrack || !carouselDots) return;
+  async function loadCatalogEvents() {
+    const withProductId = await safeSelect('métricas', sb.from('eventos').select('type,payload,producto_id,created_at').order('created_at', { ascending: false }).limit(600));
+    if (withProductId.length) return withProductId;
+    return safeSelect('métricas', sb.from('eventos').select('type,payload,created_at').order('created_at', { ascending: false }).limit(600));
+  }
 
-    const items = productos.slice(0, 6);
-    if (!items.length) {
-      carouselTrack.innerHTML = "";
-      carouselDots.innerHTML = "";
+  async function load() {
+    if (!sb) {
+      setStatus(window.BIANTI_CONFIG_ERROR || 'No se pudo cargar la información. Intentá nuevamente.', 'error');
       return;
     }
-
-    carouselTrack.innerHTML = items.map((p, idx) => {
-      const cover = getCoverUrl(p);
-      const catName = getCategoriaNombre(p);
-      return `
-        <div class="carousel__item ${idx === 0 ? "is-active" : ""}" data-idx="${idx}">
-          <img src="${esc(cover)}" alt="${esc(p.titulo || p.nombre || "")}" loading="lazy">
-          <div class="carousel__cap">
-            <div class="carousel__capTitle">${esc(p.titulo || p.nombre || "")}</div>
-            <div class="carousel__capSub">${esc(catName || "")}</div>
-          </div>
-        </div>
-      `;
-    }).join("");
-
-    carouselDots.innerHTML = items.map((_, idx) =>
-      `<button class="dot ${idx === 0 ? "is-active" : ""}" data-idx="${idx}" aria-label="Slide ${idx + 1}"></button>`
-    ).join("");
-
-    const setIdx = (n) => {
-      carouselTrack.querySelectorAll(".carousel__item").forEach((el) => {
-        el.classList.toggle("is-active", Number(el.dataset.idx) === n);
-      });
-      carouselDots.querySelectorAll(".dot").forEach((el) => {
-        el.classList.toggle("is-active", Number(el.dataset.idx) === n);
-      });
-    };
-
-    carouselDots.querySelectorAll(".dot").forEach((b) => {
-      b.addEventListener("click", () => setIdx(Number(b.dataset.idx)));
-    });
-
-    let idx = 0;
-    setInterval(() => {
-      idx = (idx + 1) % items.length;
-      setIdx(idx);
-    }, 5000);
-  }
-
-  function openProduct(p) {
-    const catName = getCategoriaNombre(p);
-    const precioTxt = money(getPrecio(p));
-
-    mCat.textContent = catName || "—";
-    mTitle.textContent = p.titulo || p.nombre || `Producto #${p.id}`;
-    mPrice.textContent = precioTxt;
-    mDesc.textContent = p.descripcion || "Consultá por WhatsApp para más detalles.";
-
-    // Gallery
-    const list = getGalleryUrls(p);
-    const hasModalImg = list[0] && list[0].length > 0;
-    mImg.style.display = hasModalImg ? "block" : "none";
-    if (mZoom) mZoom.hidden = !hasModalImg;
-    if (hasModalImg) {
-      mImg.src = list[0];
-      mImg.alt = p.titulo || p.nombre || "Producto";
-    } else {
-      mImg.src = "";
-      mImg.alt = "";
-      mImg.style.display = "none";
-    }
-
-    mThumbs.innerHTML = list.length
-      ? list.map((u, idx) => `
-        <button class="thumb ${idx === 0 ? "is-active" : ""}" type="button" data-url="${esc(u)}">
-          <img src="${esc(u)}" alt="Foto ${idx + 1}">
-        </button>
-      `).join("")
-      : `<span class="muted">Sin imagen</span>`;
-
-    mThumbs.querySelectorAll(".thumb").forEach((t) => {
-      t.addEventListener("click", () => {
-        mThumbs.querySelectorAll(".thumb").forEach((x) => x.classList.remove("is-active"));
-        t.classList.add("is-active");
-        mImg.src = t.dataset.url;
-        mImg.alt = p.titulo || p.nombre || "Producto";
-      });
-    });
-
-    grid.querySelectorAll(".btn-wa").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        const id = btn.dataset.id;
-        const p = productos.find((x) => String(x.id) === String(id));
-        if (!p) return;
-        handleWhatsappClick(e, p, { categoria_nombre: getCategoriaNombre(p), precio_txt: money(getPrecio(p)) });
-      });
-    });
-
-    // Sizes
-    const talles = (tallesByProducto.get(p.id) || []).filter(Boolean);
-    if (talles.length) {
-      mSizes.innerHTML = talles.map((t) => `<span class="chip">${esc(t)}</span>`).join("");
-    } else {
-      mSizes.innerHTML = `<span class="chip chip--muted">Consultar</span>`;
-    }
-
-    // WhatsApp link
-    mWa.href = waLink(buildWaText(p, { categoria_nombre: catName, precio_txt: precioTxt }));
-    mWa.onclick = (e) => handleWhatsappClick(e, p, { categoria_nombre: catName, precio_txt: precioTxt });
-
-    // Tracking
-    logEvent("view_product", {
-      producto_id: p.id,
-      producto_titulo: p.titulo || p.nombre || null,
-      categoria_id: p.categoria_id || null,
-      categoria_nombre: catName || null,
-    });
-
-    openModal();
-  }
-
-  async function loadData() {
-    setGlobalWaButtons();
-
-    // Productos (select * para NO romper por columnas faltantes).
-    const { data: prods, error: e1 } = await sb
-      .from("productos")
-      .select("*")
-      .order("id", { ascending: false });
-
-    if (e1) {
-      console.error("Error cargando productos:", e1);
-      productos = [];
-    } else {
-      productos = prods || [];
-    }
-
-    // Categorías.
-    const { data: cats, error: e2 } = await sb
-      .from("categorias")
-      .select("*")
-      .order("id", { ascending: true });
-
-    if (e2) {
-      console.error("Error cargando categorías:", e2);
-      categorias = [];
-    } else {
-      categorias = cats || [];
-    }
-
-    // Fotos (si existe tabla producto_fotos).
+    setStatus('Cargando catálogo...');
     try {
-      const { data: fotos, error: e3 } = await sb
-        .from("producto_fotos")
-        .select("*")
-        .order("orden", { ascending: true });
-
-      if (!e3 && fotos?.length) {
-        fotosByProducto = new Map();
-        fotos.forEach((f) => {
-          const pid = f.producto_id;
-          if (!fotosByProducto.has(pid)) fotosByProducto.set(pid, []);
-          fotosByProducto.get(pid).push({ url: f.url });
-        });
-      }
-    } catch (err) {
-      // no pasa nada
-    }
-
-    // Relaciones producto_categorias para proyectos sin categoria_id directo.
-    try {
-      const { data: rels, error: eRel } = await sb
-        .from("producto_categorias")
-        .select("producto_id,categoria_id");
-
-      if (!eRel && rels?.length) {
-        categoriasByProducto = new Map();
-        rels.forEach((r) => {
-          const pid = String(r.producto_id);
-          if (!categoriasByProducto.has(pid)) categoriasByProducto.set(pid, []);
-          categoriasByProducto.get(pid).push(r.categoria_id);
-        });
-      }
-    } catch (err) {
-      // no pasa nada
-    }
-
-    // Variantes -> talles (si existe tabla variantes).
-    try {
-      const { data: vars, error: e4 } = await sb
-        .from("variantes")
-        .select("*");
-
-      if (!e4 && vars?.length) {
-        tallesByProducto = new Map();
-        vars.forEach((v) => {
-          const pid = v.producto_id;
-          const talle = v.talle || v.size || null;
-          if (!pid) return;
-          if (!tallesByProducto.has(pid)) tallesByProducto.set(pid, []);
-          if (talle && !tallesByProducto.get(pid).includes(talle)) {
-            tallesByProducto.get(pid).push(talle);
-          }
-        });
-      }
-    } catch (err) {
-      // no pasa nada
-    }
-
-    // Stats
-    if (statProductos) statProductos.textContent = String(productos.length || 0);
-    if (statCategorias) statCategorias.textContent = String(categorias.length || 0);
-
-    renderCategoriasSelect();
-    filtered = productos.slice();
-    renderGrid();
-    renderCarousel();
-  }
-
-  function bindFilters() {
-    if (q) {
-      q.addEventListener("input", () => {
-        currentQuery = q.value || "";
-        applyFilters();
-      });
-    }
-    if (cat) {
-      cat.addEventListener("change", () => {
-        currentCatId = cat.value || "";
-        if (catChips) {
-          catChips.querySelectorAll(".catChip").forEach((btn) => {
-            btn.classList.toggle("is-active", String(btn.dataset.id || "") === String(currentCatId));
-          });
-        }
-        // tracking view_category
-        if (currentCatId) {
-          const c = categorias.find((x) => String(x.id) === String(currentCatId));
-          logEvent("view_category", { categoria_id: currentCatId, categoria_nombre: c?.nombre || null });
-        }
-        applyFilters();
-      });
+      const [productos, categorias, rels, fotos, talles, eventos, ofertas] = await Promise.all([
+        safeSelect('productos', sb.from('productos').select('*').order('id', { ascending: false }).limit(500), true),
+        safeSelect('categorías', sb.from('categorias').select('*').order('orden', { ascending: true }).order('id', { ascending: true }), true),
+        safeSelect('relaciones de categorías', sb.from('producto_categorias').select('producto_id,categoria_id')),
+        safeSelect('fotos de productos', sb.from('producto_fotos').select('producto_id,url,orden').order('orden', { ascending: true })),
+        safeSelect('talles', sb.from('producto_talles').select('producto_id,talle')),
+        loadCatalogEvents(),
+        safeSelect('ofertas', sb.from('ofertas').select('*'))
+      ]);
+      state.productos = productos;
+      state.categorias = categorias.filter((category) => category.visible !== false && category.visible !== 0 && String(category.nombre || '').trim());
+      state.rels = rels;
+      state.fotos = fotos;
+      state.talles = talles;
+      state.eventos = eventos;
+      state.ofertas = ofertas.length ? ofertas : getLocalOffers();
+      renderSelects();
+      renderHome();
+      setStatus(state.productos.length ? '' : 'No hay productos cargados por el momento.', state.productos.length ? '' : 'ok');
+    } catch (error) {
+      setStatus('No se pudo cargar el catálogo. Intentá nuevamente.', 'error');
+      console.warn(error.message || error);
     }
   }
 
-  // Init
-  bindModalClose();
-  bindLightbox();
-  bindFilters();
-  loadData();
+  [els.btnFilters, els.btnOpenFilters, els.mobileFilters].forEach((btn) => btn?.addEventListener('click', openDrawer));
+  document.querySelectorAll('[data-close-filter]').forEach((btn) => btn.addEventListener('click', closeDrawer));
+  els.drawer?.addEventListener('click', (event) => { if (event.target === els.drawer) closeDrawer(); });
+  document.querySelectorAll('[data-modal-close]').forEach((btn) => btn.addEventListener('click', closeDetail));
+  els.modal?.addEventListener('click', (event) => { if (event.target === els.modal) closeDetail(); });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      if (!els.lightbox?.hidden) { closeLightbox(); return; }
+      closeDrawer(); closeDetail(); closeCatalogMenu();
+    }
+    if (!els.modal?.hidden && els.lightbox?.hidden && event.key === 'ArrowLeft') setGalleryIndex(galleryIndex - 1);
+    if (!els.modal?.hidden && els.lightbox?.hidden && event.key === 'ArrowRight') setGalleryIndex(galleryIndex + 1);
+  });
+  document.addEventListener('click', (event) => { if (!event.target.closest('.catalog-menu')) closeCatalogMenu(); });
+  els.catalogMenuBtn?.addEventListener('click', (event) => { event.stopPropagation(); toggleCatalogMenu(); });
+  els.catalogMenuList?.addEventListener('click', (event) => {
+    const btn = event.target.closest('[data-catalog-category]');
+    if (!btn) return;
+    applyCatalogCategory(btn.dataset.catalogCategory || '');
+  });
+  els.catalogMenuList?.addEventListener('keydown', (event) => {
+    const items = [...els.catalogMenuList.querySelectorAll('[data-catalog-category]')];
+    const index = items.indexOf(document.activeElement);
+    if (event.key === 'ArrowDown') { event.preventDefault(); items[(index + 1 + items.length) % items.length]?.focus(); }
+    if (event.key === 'ArrowUp') { event.preventDefault(); items[(index - 1 + items.length) % items.length]?.focus(); }
+    if (event.key === 'Home') { event.preventDefault(); items[0]?.focus(); }
+    if (event.key === 'End') { event.preventDefault(); items[items.length - 1]?.focus(); }
+  });
+  els.galleryPrev?.addEventListener('click', () => setGalleryIndex(galleryIndex - 1));
+  els.galleryNext?.addEventListener('click', () => setGalleryIndex(galleryIndex + 1));
+  els.modalImage?.addEventListener('click', openLightbox);
+  els.lightboxClose?.addEventListener('click', closeLightbox);
+  els.lightbox?.addEventListener('click', (event) => { if (event.target === els.lightbox) closeLightbox(); });
+  els.search?.addEventListener('input', () => { state.query = els.search.value.trim(); syncControls(); renderResults(); });
+  els.mobileSearchInput?.addEventListener('input', () => { state.query = els.mobileSearchInput.value.trim(); els.search.value = state.query; renderResults(); });
+  els.mobileSearch?.addEventListener('click', () => { els.mobileSearchInput.hidden = !els.mobileSearchInput.hidden; if (!els.mobileSearchInput.hidden) els.mobileSearchInput.focus({ preventScroll: true }); });
+  els.quickCategory?.addEventListener('change', () => { state.category = els.quickCategory.value; state.talle = ''; syncControls(); updateTalleOptions(); renderCatalogMenu(); if (state.category) logEvent('view_category', null, { categoria_id: state.category }); renderResults(true); });
+  els.mobileCategory?.addEventListener('change', () => { state.category = els.mobileCategory.value; state.talle = ''; syncControls(); updateTalleOptions(); renderCatalogMenu(); if (state.category) logEvent('view_category', null, { categoria_id: state.category }); renderResults(!!state.category || !!state.query); });
+  els.clearCategory?.addEventListener('click', () => { state.query = ''; state.category = ''; state.talle = ''; state.minPrice = ''; state.maxPrice = ''; state.offer = ''; state.sort = 'recientes'; els.search.value = ''; syncControls(); updateTalleOptions(); renderCatalogMenu(); renderResults(false); });
+  $('applyFilters')?.addEventListener('click', () => { state.category = els.filterCategory.value; state.talle = els.filterTalle.value; state.minPrice = els.filterMinPrice?.value.trim() || ''; state.maxPrice = els.filterMaxPrice?.value.trim() || ''; state.offer = els.filterOffer?.value || ''; state.sort = els.sort.value; syncControls(); updateTalleOptions(); renderCatalogMenu(); closeDrawer(); if (state.category) logEvent('view_category', null, { categoria_id: state.category }); renderResults(true); });
+  $('clearFilters')?.addEventListener('click', () => { state.category = ''; state.talle = ''; state.minPrice = ''; state.maxPrice = ''; state.offer = ''; state.sort = 'recientes'; syncControls(); updateTalleOptions(); renderCatalogMenu(); closeDrawer(); renderResults(!!state.query); });
+  els.filterCategory?.addEventListener('change', () => { state.category = els.filterCategory.value; state.talle = ''; updateTalleOptions(); syncControls(); });
+  els.filterTalle?.addEventListener('change', () => { state.talle = els.filterTalle.value; });
+  els.filterMinPrice?.addEventListener('input', () => { state.minPrice = els.filterMinPrice.value.trim(); });
+  els.filterMaxPrice?.addEventListener('input', () => { state.maxPrice = els.filterMaxPrice.value.trim(); });
+  els.filterOffer?.addEventListener('change', () => { state.offer = els.filterOffer.value; });
+  els.sort?.addEventListener('change', () => { state.sort = els.sort.value; renderResults(hasActiveFilters()); });
+  [els.btnWaTop, els.btnWaBottom].forEach((link) => { if (link) link.href = waUrl('Hola BIANTI, quiero hacer una consulta.'); });
+  els.modalWhatsapp?.addEventListener('click', async () => {
+    const product = state.productos.find((row) => String(row.id) === String(els.modalWhatsapp.dataset.wa));
+    if (product) await Promise.all([createPedido(product), logEvent('click_whatsapp', product, { titulo: title(product), precio: price(withOffer(product)), talle: state.talle || null })]);
+  });
+
+  $('footerYear').textContent = String(new Date().getFullYear());
+
+  await load();
 })();

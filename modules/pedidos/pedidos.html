@@ -1,0 +1,6 @@
+<div class="pageHead"><div><h1>Pedidos</h1><p class="moduleIntro">Aquí aparecen las consultas iniciadas por WhatsApp desde el catálogo. Podés revisar cada caso y registrar su resultado.</p></div></div>
+<div class="toolbarCompact"><label>Buscar<input class="input" id="pedidoQ" placeholder="Producto, contacto, mensaje u origen"></label><label>Estado<select class="select" id="pedidoEstado"><option value="">Todos</option><option value="en_revision">En revisión</option><option value="vendido">Vendido</option><option value="no_vendido">No vendido</option><option value="cancelado">Cancelado</option></select></label><label>Origen<input class="input" id="pedidoOrigen" placeholder="WhatsApp, catálogo"></label><button class="btn" id="pedidoClear">Limpiar</button></div>
+<section class="panel tablePanel">
+  <div class="tableHeader"><div><strong>Consultas</strong><br><span id="pedidoCount">0 consultas</span></div></div>
+  <div class="tableWrap"><table class="compactTable mobileCards"><thead><tr><th>Producto</th><th>Contacto</th><th>Fecha</th><th>Mensaje</th><th>Origen</th><th>Total</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="pedidoRows"></tbody></table></div>
+</section>
