@@ -51,16 +51,17 @@
   function stockValue(p) { const n = Number(p?.stock_actual); return Number.isInteger(n) && n >= 0 ? n : null; }
   function minStockValue(p) { const n = Number(p?.stock_minimo); return Number.isInteger(n) && n >= 0 ? n : 0; }
   function validNonNegativeInteger(value) { const n = Number(value); return Number.isInteger(n) && n >= 0 ? n : null; }
+  function filterNumberOrNull(value) { return String(value ?? "").trim() === "" ? null : H.numOrNull(value); }
 
-  function filteredRows() {
+  function aplicarFiltros(productos) {
     const q = document.getElementById("prodQ").value.trim().toLowerCase();
     const cat = document.getElementById("prodCat").value;
     const vis = document.getElementById("prodVisible").value;
     const av = document.getElementById("prodAvail").value;
     const stock = document.getElementById("prodStock").value;
-    const min = H.numOrNull(document.getElementById("prodMin").value);
-    const max = H.numOrNull(document.getElementById("prodMax").value);
-    return deduplicarProductosPorId(ctx.state.productos).filter((p) => {
+    const min = filterNumberOrNull(document.getElementById("prodMin").value);
+    const max = filterNumberOrNull(document.getElementById("prodMax").value);
+    return productos.filter((p) => {
       const currentStock = stockValue(p);
       return (!q || `${p.id} ${p.titulo || ""}`.toLowerCase().includes(q))
         && (!cat || H.catsOf(ctx, p.id).includes(cat))
@@ -72,34 +73,34 @@
     });
   }
 
+  function filteredRows() { return aplicarFiltros(deduplicarProductosPorId(ctx.state.productos)); }
+
   function hasActiveFilters() {
     return ["prodQ", "prodCat", "prodVisible", "prodAvail", "prodStock", "prodMin", "prodMax"].some((id) => document.getElementById(id).value !== "");
   }
 
-  function currentPage(rows) {
-    const size = Number(document.getElementById("prodPageSize").value || 25);
-    const totalPages = Math.max(1, Math.ceil(rows.length / size));
-    page = Math.min(page, totalPages);
-    const start = rows.length ? (page - 1) * size + 1 : 0;
-    const end = Math.min(page * size, rows.length);
-    return { chunk: rows.slice((page - 1) * size, page * size), totalPages, start, end };
-  }
-
   // Renderizado
   function draw() {
-    ctx.state.productos = deduplicarProductosPorId(ctx.state.productos);
-    const totalGeneral = ctx.state.productos.length;
-    const rows = filteredRows();
-    const { chunk, totalPages, start, end } = currentPage(rows);
+    const productosUnicos = deduplicarProductosPorId(ctx.state.productos);
+    const totalGeneral = productosUnicos.length;
+    const productosFiltrados = aplicarFiltros(productosUnicos);
+    const totalFiltrado = productosFiltrados.length;
+    const porPagina = Number(document.getElementById("prodPageSize").value || 25);
+    const totalPaginas = Math.ceil(totalFiltrado / porPagina);
+    page = totalPaginas ? Math.min(page, totalPaginas) : 1;
+    const inicio = (page - 1) * porPagina;
+    const productosPagina = productosFiltrados.slice(inicio, inicio + porPagina);
+    const start = totalFiltrado ? inicio + 1 : 0;
+    const end = Math.min(inicio + porPagina, totalFiltrado);
     const colspan = modoEliminacionMasiva ? 11 : 10;
-    document.getElementById("prodRows").innerHTML = chunk.map(row).join("") || `<tr><td colspan="${colspan}">${H.empty("Sin productos para los filtros seleccionados.")}</td></tr>`;
-    document.getElementById("prodCount").textContent = hasActiveFilters() ? `${rows.length} resultados de ${totalGeneral} productos` : `${totalGeneral} productos`;
-    document.getElementById("prodPageRange").textContent = `Mostrando ${start}${end ? `-${end}` : ""} de ${rows.length}`;
-    document.getElementById("prodPageInfo").textContent = `Página ${page} de ${totalPages}`;
+    document.getElementById("prodRows").innerHTML = productosPagina.map(row).join("") || `<tr><td colspan="${colspan}">${H.empty("Sin productos para los filtros seleccionados.")}</td></tr>`;
+    document.getElementById("prodCount").textContent = hasActiveFilters() ? `${totalFiltrado} resultados de ${totalGeneral} productos` : `${totalGeneral} productos`;
+    document.getElementById("prodPageRange").textContent = `Mostrando ${start}${end ? `-${end}` : ""} de ${totalFiltrado}`;
+    document.getElementById("prodPageInfo").textContent = `Página ${totalFiltrado ? page : 0} de ${totalPaginas}`;
     document.getElementById("prodPrev").disabled = page <= 1;
-    document.getElementById("prodNext").disabled = page >= totalPages;
-    renderBulkState(chunk);
-    bindRows(chunk);
+    document.getElementById("prodNext").disabled = page >= totalPaginas;
+    renderBulkState(productosPagina);
+    bindRows(productosPagina);
   }
 
   function row(p) {
@@ -140,7 +141,15 @@
   function enterBulkMode() { modoEliminacionMasiva = true; selectedProductIds.clear(); draw(); }
   function exitBulkMode() { modoEliminacionMasiva = false; selectedProductIds.clear(); draw(); }
   function selectAllFiltered() { filteredRows().forEach((p) => selectedProductIds.add(String(p.id))); draw(); }
-  function toggleVisibleSelection(checked) { currentPage(filteredRows()).chunk.forEach((p) => checked ? selectedProductIds.add(String(p.id)) : selectedProductIds.delete(String(p.id))); draw(); }
+  function toggleVisibleSelection(checked) {
+    const productosFiltrados = filteredRows();
+    const porPagina = Number(document.getElementById("prodPageSize").value || 25);
+    const totalPaginas = Math.ceil(productosFiltrados.length / porPagina);
+    page = totalPaginas ? Math.min(page, totalPaginas) : 1;
+    const inicio = (page - 1) * porPagina;
+    productosFiltrados.slice(inicio, inicio + porPagina).forEach((p) => checked ? selectedProductIds.add(String(p.id)) : selectedProductIds.delete(String(p.id)));
+    draw();
+  }
 
   function renderBulkState(chunk) {
     const bulkBar = document.getElementById("prodBulkBar");
