@@ -46,11 +46,9 @@
   function labelEstado(estado) { return ({ en_revision: "En revisión", vendido: "Vendido", no_vendido: "No vendido", cancelado: "Cancelado" }[estado] || estado || "Sin estado"); }
 
   function stockAlerts(ctx, H) {
-    const pairs = [["stock_actual", "stock_minimo"], ["stock", "stock_minimo"], ["cantidad", "stock_minimo"], ["cantidad_disponible", "minimo_stock"]];
-    const pair = pairs.find(([a, b]) => ctx.state.productos.some((p) => Object.prototype.hasOwnProperty.call(p, a) && Object.prototype.hasOwnProperty.call(p, b)));
-    if (!pair) return H.empty("No existen columnas reales de stock. No se muestran alertas falsas.");
-    const [current, min] = pair;
-    const rows = ctx.state.productos.filter((p) => Number(p[current]) <= Number(p[min]));
-    return rows.map((p) => productMini(ctx, H, p.id, `${p[current]} / mínimo ${p[min]}`)).join("") || H.empty("No hay alertas de stock activas.");
+    const hasStock = ctx.state.productos.some((p) => Object.prototype.hasOwnProperty.call(p, "stock_actual") && Object.prototype.hasOwnProperty.call(p, "stock_minimo"));
+    if (!hasStock) return H.empty("Las alertas de stock no están disponibles por el momento.");
+    const rows = ctx.state.productos.filter((p) => Number.isFinite(Number(p.stock_actual)) && Number.isFinite(Number(p.stock_minimo)) && Number(p.stock_actual) <= Number(p.stock_minimo));
+    return rows.map((p) => productMini(ctx, H, p.id, `${p.stock_actual} / mínimo ${p.stock_minimo}`)).join("") || H.empty("No hay alertas de stock activas.");
   }
 })();

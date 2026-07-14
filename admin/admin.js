@@ -11,6 +11,7 @@
     dashboard: "dashboard",
     productos: "productos",
     importar: "importar",
+    "importar-ventas": "importar-ventas",
     categorias: "categorias",
     pedidos: "pedidos",
     ofertas: "ofertas",
@@ -23,6 +24,7 @@
     dashboard: "Panel principal",
     productos: "Productos",
     importar: "Importar productos",
+    "importar-ventas": "Importar ventas",
     categorias: "Categorías",
     pedidos: "Pedidos",
     ofertas: "Ofertas",
@@ -132,7 +134,7 @@
   async function openModule(name) {
     const moduleName = moduleMap[name] || "dashboard";
     const base = `../modules/${moduleName}/${moduleName}`;
-    document.querySelectorAll(".sideLink[data-section]").forEach((el) => el.classList.toggle("active", el.dataset.section === moduleName));
+    document.querySelectorAll(".sideLink[data-section]").forEach((el) => el.classList.toggle("active", (moduleMap[el.dataset.section] || el.dataset.section) === moduleName));
     byId("topSectionName").textContent = sectionLabels[moduleName] || "Administración";
     location.hash = moduleName;
     loader.classList.remove("hidden");

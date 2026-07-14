@@ -1,0 +1,13 @@
+<div class="pageHead"><div><h1>Importar ventas</h1><p class="moduleIntro">Registrá varias ventas desde un archivo CSV. El sistema identifica los productos, valida las cantidades y descuenta el stock al confirmar.</p></div><button class="btn btnPrimary" id="downloadSalesTemplate" type="button">Descargar plantilla</button></div>
+<section class="panel">
+  <div class="fieldGrid">
+    <label class="fieldSpan"><span class="label">Archivo CSV</span><input class="input" id="salesCsvFile" type="file" accept=".csv,text/csv"></label>
+    <div class="actionsRow fieldSpan"><button class="btn btnPrimary" id="previewSalesImport" type="button">Previsualizar</button><button class="btn" id="clearSalesImport" type="button">Cancelar</button></div>
+  </div>
+  <div class="status hidden" id="salesImportStatus"></div>
+</section>
+<section class="kpiGrid" id="salesImportSummary"></section>
+<section class="panel tablePanel">
+  <div class="tableHeader"><div><strong>Vista previa de ventas</strong><br><span id="salesImportCount">Sin archivo seleccionado</span></div><div class="actionsRow actionsRight"><button class="btn btnPrimary btnSmall" id="confirmSalesImport" type="button" disabled>Confirmar importación</button></div></div>
+  <div class="tableWrap"><table class="compactTable importSalesTable mobileCards"><thead><tr><th>Fila</th><th>Nombre recibido</th><th>Producto seleccionado</th><th>ID</th><th>Stock actual</th><th>Cantidad</th><th>Stock resultante</th><th>Precio unitario</th><th>Total</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="salesImportRows"><tr><td colspan="12"><div class="empty">Seleccioná un CSV para previsualizar ventas. No se registra nada al seleccionar el archivo.</div></td></tr></tbody></table></div>
+</section>
